@@ -1,6 +1,7 @@
 #pragma once
 #include "ui_main_window.h"
 #include <QMainWindow>
+#include <vector>
 #include <zel/myorm.h>
 #include <zel/utility.h>
 
@@ -14,6 +15,8 @@ class MainWindow : public QMainWindow {
     void queryBtnClicked();
 
   private:
+    std::vector<std::string> getOrderData(std::string order_id);
+
     // 初始化窗口
     void initWindow();
 
@@ -25,11 +28,15 @@ class MainWindow : public QMainWindow {
 
     void initConfig(const std::string &inifile);
 
-    void initConnectionPool();
+    bool initConnectionPool();
+
+    bool checkDatabaseConnected();
 
   private:
     Ui_MainWindow *ui_;
 
     zel::utility::IniFile      ini_;
     zel::myorm::ConnectionPool pool_;
+
+    std::string data_config_;
 };

@@ -1,9 +1,19 @@
 #include "main_window.h"
+#include "model/xh_prjcfg.hpp"
 
-#include "order/order.h"
+#include "task/order.h"
 
+#include <zel/thread.h>
+using namespace zel::thread;
+
+#include <zel/utility.h>
+using namespace zel::utility;
+
+#include <chrono>
+#include <cstdlib>
 #include <qmessagebox.h>
 #include <qmessagebox>
+#include <vector>
 
 MainWindow::MainWindow(QMainWindow *parent)
     : QMainWindow(parent)
@@ -18,7 +28,10 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     initConfig("./bin/config.ini");
 
-    initConnectionPool();
+    if (!initConnectionPool()) {
+        QMessageBox::critical(this, "警告", "数据库配置不正确，请检查配置，详情见日志 'mysql.log'.");
+        exit(-2);
+    }
 }
 
 MainWindow::~MainWindow() { delete ui_; }
@@ -29,10 +42,63 @@ void MainWindow::queryBtnClicked() {
 
     if (order_id == "" || card_info == "") {
         QMessageBox::critical(this, "警告", "订单号或卡信息为空");
+        return;
     }
 
-    Order order(&pool_, order_id, card_info);
-    order.query();
+    auto data_files = getOrderData(order_id);
+
+    int thread_count = 10;
+    int task_count   = data_files.size();
+
+    auto logger = Logger::instance();
+    if (logger->isOpen()) {
+        printf("日志文件打开了\n");
+    }
+
+    // 多线程任务分发器初始化
+    auto task_dispatcher = Singleton<TaskDispatcher>::instance();
+    task_dispatcher->init(thread_count);
+
+    // 计时开始
+    auto start = std::chrono::system_clock::now();
+
+    // 创建线程任务
+    for (int i = 0; i < task_count; i++) {
+        Task *task = new Order(&pool_, data_config_, data_files[i], card_info);
+        task_dispatcher->assign(task);
+    }
+    // 等待任务完成
+    task_dispatcher->wait();
+
+    // 计时结束
+    auto end = std::chrono::system_clock::now();
+
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    printf("all task done, use time: %lld ms\n", time);
+}
+
+std::vector<std::string> MainWindow::getOrderData(std::string order_id) {
+    std::vector<std::string> data_files;
+
+    auto conn = pool_.get();
+    auto all  = XhPrjcfg(conn).where("PrjId", "=", order_id).all();
+    pool_.put(conn);
+
+    data_config_ = all[0]("DataCfgA").asString();
+    for (auto one : all) {
+        std::string data_file = one("DataFiles");
+
+        if (data_file.find(".prd") == std::string::npos) {
+            continue;
+        }
+
+        String::toLower(data_file);
+        data_file = "`" + data_file + "`";
+
+        data_files.push_back(data_file);
+    }
+
+    return data_files;
 }
 
 void MainWindow::initWindow() {
@@ -64,12 +130,22 @@ void MainWindow::initConfig(const std::string &inifile) {
     }
 }
 
-void MainWindow::initConnectionPool() {
+bool MainWindow::initConnectionPool() {
 
-    zel::utility::Logger::instance()->open("./bin/mysql.log");
+    auto logger = zel::utility::Logger::instance();
+    logger->open("./bin/mysql.log");
+    logger->setFormat(false);
 
-    pool_.size(3);
+    // 检查数据库连接
+    if (!checkDatabaseConnected()) {
+        return false;
+    }
+
+    // 创建数据库连接池
+    pool_.size(10);
     pool_.create(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["username"], ini_["mysql"]["password"], ini_["mysql"]["database"], "utf8", true);
+
+    return true;
 
     // auto conn = pool.get();
 
@@ -81,4 +157,12 @@ void MainWindow::initConnectionPool() {
     // student.save();
 
     // pool.put(conn);
+}
+
+bool MainWindow::checkDatabaseConnected() {
+    zel::myorm::Database db;
+    bool                 is_connected =
+        db.connect(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["username"], ini_["mysql"]["password"], ini_["mysql"]["database"]);
+    db.close();
+    return is_connected;
 }
