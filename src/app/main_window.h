@@ -38,5 +38,5 @@ class MainWindow : public QMainWindow {
     zel::utility::IniFile      ini_;
     zel::myorm::ConnectionPool pool_;
 
-    std::string data_config_;
+    std::map<std::string, std::vector<int>> data_configs_;
 };

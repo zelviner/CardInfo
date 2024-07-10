@@ -64,7 +64,7 @@ void MainWindow::queryBtnClicked() {
 
     // 创建线程任务
     for (int i = 0; i < task_count; i++) {
-        Task *task = new Order(&pool_, data_config_, data_files[i], card_info);
+        Task *task = new Order(&pool_, data_configs_, data_files[i], card_info);
         task_dispatcher->assign(task);
     }
     // 等待任务完成
@@ -84,7 +84,10 @@ std::vector<std::string> MainWindow::getOrderData(std::string order_id) {
     auto all  = XhPrjcfg(conn).where("PrjId", "=", order_id).all();
     pool_.put(conn);
 
-    data_config_ = all[0]("DataCfgA").asString();
+    std::string data_config = all[0]("DataCfgA").asString();
+
+    data_configs_ = Order::getDataIndex(data_config);
+
     for (auto one : all) {
         std::string data_file = one("DataFiles");
 
