@@ -26,7 +26,7 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     initSignalSlot();
 
-    initConfig("./bin/config.ini");
+    initConfig("config.ini");
 
     if (!initConnectionPool()) {
         QMessageBox::critical(this, "警告", "数据库配置不正确，请检查配置，详情见日志 'mysql.log'.");
@@ -136,7 +136,7 @@ void MainWindow::initConfig(const std::string &inifile) {
 bool MainWindow::initConnectionPool() {
 
     auto logger = zel::utility::Logger::instance();
-    logger->open("./bin/mysql.log");
+    logger->open("mysql.log");
     logger->setFormat(false);
 
     // 检查数据库连接

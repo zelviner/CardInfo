@@ -58,7 +58,7 @@ std::map<std::string, std::vector<int>> Order::getDataIndex(const std::string &d
 
 void Order::getPrdData(const std::string &prd_file) {
 
-    // printf("finding %s.\n", prd_file.c_str());
+    printf("finding %s.\n", prd_file.c_str());
 
     auto start = std::chrono::system_clock::now();
 
@@ -69,7 +69,6 @@ void Order::getPrdData(const std::string &prd_file) {
     pool_->put(conn);
 
     auto center = std::chrono::system_clock::now();
-    // printf("data size: %d\n", all.size());
     for (auto record : records) {
         for (auto it = record.begin(); it != record.end(); it++) {
             std::string data = it->second;
@@ -83,7 +82,7 @@ void Order::getPrdData(const std::string &prd_file) {
 
     auto time_one = std::chrono::duration_cast<std::chrono::milliseconds>(center - start).count();
     auto time_two = std::chrono::duration_cast<std::chrono::milliseconds>(end - center).count();
-    // printf("%s done, use time_one: %lld ms, time_two: %lld ms\n", prd_file.c_str(), time_one, time_two);
+    printf("%s done, use time_one: %lld ms, time_two: %lld ms\n", prd_file.c_str(), time_one, time_two);
 }
 
 bool Order::getDataInfo(const std::string &datas) {
