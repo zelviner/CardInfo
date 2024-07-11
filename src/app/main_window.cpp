@@ -1,6 +1,6 @@
 #include "main_window.h"
+#include "model/order_table.hpp"
 #include "model/xh_prjcfg.hpp"
-
 #include "task/order.h"
 
 #include <zel/thread.h>
@@ -8,11 +8,14 @@ using namespace zel::thread;
 
 #include <zel/utility.h>
 using namespace zel::utility;
+using namespace zel::myorm;
 
 #include <chrono>
 #include <cstdlib>
+#include <memory>
 #include <qmessagebox.h>
 #include <qmessagebox>
+#include <type_traits>
 #include <vector>
 
 MainWindow::MainWindow(QMainWindow *parent)
@@ -26,34 +29,82 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     initSignalSlot();
 
+    initLogger();
+
     initConfig("config.ini");
 
-    if (!initConnectionPool()) {
-        QMessageBox::critical(this, "警告", "数据库配置不正确，请检查配置，详情见日志 'mysql.log'.");
-        exit(-2);
-    }
+    initConnectionPool();
 }
 
 MainWindow::~MainWindow() { delete ui_; }
 
 void MainWindow::queryBtnClicked() {
-    auto order_id  = ui_->order_id_line->text().toStdString();
-    auto card_info = ui_->card_info_line->text().toStdString();
+    order_id_  = ui_->order_id_line->text().toStdString();
+    card_info_ = ui_->card_info_line->text().toStdString();
+    ui_->result_group_box->setVisible(false);
+    ui_->not_found_label->setVisible(false);
 
-    if (order_id == "" || card_info == "") {
+    if (order_id_ == "" || card_info_ == "") {
         QMessageBox::critical(this, "警告", "订单号或卡信息为空");
         return;
     }
 
-    auto data_files = getOrderData(order_id);
+    auto conn = local_pool_->get();
 
-    int thread_count = 10;
-    int task_count   = data_files.size();
+    // 查询订单表是否存在
+    if (!conn->table_exists(order_id_)) {
 
-    auto logger = Logger::instance();
-    if (logger->isOpen()) {
-        printf("日志文件打开了\n");
+        data_files_ = getOrderData();
+
+        if (!createOrderTable()) {
+            return;
+        }
+
+        downloadData();
     }
+
+    local_pool_->put(conn);
+
+    // 查询
+    query();
+}
+
+std::vector<std::vector<std::string>> MainWindow::getOrderData() {
+    std::vector<std::vector<std::string>> data_files;
+
+    auto conn = remote_pool_->get();
+    auto all  = XhPrjcfg(conn).where("PrjId", "=", order_id_).all();
+    remote_pool_->put(conn);
+
+    std::string data_config = all[0]("DataCfgA").asString();
+
+    data_configs_ = Order::getDataIndex(data_config);
+
+    int table_count = (*ini_)["system"]["table_count"];
+
+    std::vector<std::string> temp_files;
+    for (int i = 0; i < all.size(); i++) {
+        std::string data_file = all[i]("DataFiles");
+
+        if (data_file.find(".prd") == std::string::npos) {
+            continue;
+        }
+
+        String::toLower(data_file);
+
+        temp_files.push_back(data_file);
+        if ((i + 1) % table_count == 0) {
+            data_files.push_back(temp_files);
+            temp_files.clear();
+        }
+    }
+
+    return data_files;
+}
+
+bool MainWindow::downloadData() {
+    int thread_count = (*ini_)["system"]["thread_count"];
+    int task_count   = data_files_.size();
 
     // 多线程任务分发器初始化
     auto task_dispatcher = Singleton<TaskDispatcher>::instance();
@@ -64,7 +115,7 @@ void MainWindow::queryBtnClicked() {
 
     // 创建线程任务
     for (int i = 0; i < task_count; i++) {
-        Task *task = new Order(&pool_, data_configs_, data_files[i], card_info);
+        Task *task = new Order(remote_pool_, local_pool_, data_configs_, data_files_[i], card_info_, order_id_);
         task_dispatcher->assign(task);
     }
     // 等待任务完成
@@ -75,33 +126,8 @@ void MainWindow::queryBtnClicked() {
 
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     printf("all task done, use time: %lld ms\n", time);
-}
 
-std::vector<std::string> MainWindow::getOrderData(std::string order_id) {
-    std::vector<std::string> data_files;
-
-    auto conn = pool_.get();
-    auto all  = XhPrjcfg(conn).where("PrjId", "=", order_id).all();
-    pool_.put(conn);
-
-    std::string data_config = all[0]("DataCfgA").asString();
-
-    data_configs_ = Order::getDataIndex(data_config);
-
-    for (auto one : all) {
-        std::string data_file = one("DataFiles");
-
-        if (data_file.find(".prd") == std::string::npos) {
-            continue;
-        }
-
-        String::toLower(data_file);
-        data_file = "`" + data_file + "`";
-
-        data_files.push_back(data_file);
-    }
-
-    return data_files;
+    return true;
 }
 
 void MainWindow::initWindow() {
@@ -110,62 +136,124 @@ void MainWindow::initWindow() {
 }
 
 void MainWindow::initUI() {
-    // // 插入图片
-    // QPixmap pixmap(":/image/data.png");
-    // ui_->push_btn->setIcon(pixmap);
-    // ui_->push_btn->setIconSize(pixmap.size());
-    // ui_->push_btn->setFixedSize(pixmap.size());
+    ui_->result_group_box->setVisible(false);
+    ui_->not_found_label->setVisible(false);
 }
 
 void MainWindow::initSignalSlot() { connect(ui_->query_btn, &QPushButton::clicked, this, &MainWindow::queryBtnClicked); }
 
-void MainWindow::initConfig(const std::string &inifile) {
-    if (ini_.exists(inifile)) {
-        ini_.load(inifile);
-    } else {
-        ini_.set("mysql", "host", "127.0.0.1");
-        ini_.set("mysql", "port", 3306);
-        ini_.set("mysql", "username", "root");
-        ini_.set("mysql", "password", "123456");
-        ini_.set("mysql", "database", "xh_data_server");
+void MainWindow::initLogger() {
+    auto logger = Logger::instance();
+    logger->open("error.log");
+    logger->setFormat(false);
+    logger->setLevel(Logger::LOG_ERROR);
+}
 
-        ini_.save(inifile);
+void MainWindow::initConfig(const std::string &inifile) {
+    ini_ = std::make_shared<IniFile>();
+    if (ini_->exists(inifile)) {
+        ini_->load(inifile);
+    } else {
+        ini_->set("system", "connect_pool", 10);
+        ini_->set("system", "thread_count", 8);
+        ini_->set("system", "table_count", 5);
+
+        ini_->set("remote_mysql", "host", "127.0.0.1");
+        ini_->set("remote_mysql", "port", 3306);
+        ini_->set("remote_mysql", "username", "root");
+        ini_->set("remote_mysql", "password", "123456");
+        ini_->set("remote_mysql", "database", "xh_data_server");
+
+        ini_->set("local_mysql", "host", "127.0.0.1");
+        ini_->set("local_mysql", "port", 3306);
+        ini_->set("local_mysql", "username", "root");
+        ini_->set("local_mysql", "password", "123456");
+        ini_->set("local_mysql", "database", "xh_data_server");
+
+        ini_->save(inifile);
     }
 }
 
 bool MainWindow::initConnectionPool() {
 
-    auto logger = zel::utility::Logger::instance();
-    logger->open("mysql.log");
-    logger->setFormat(false);
+    auto remote_mysql = (*ini_)["remote_mysql"];
+    auto local_mysql  = (*ini_)["local_mysql"];
 
-    // 检查数据库连接
-    if (!checkDatabaseConnected()) {
+    // 检查远程数据库连接
+    if (!checkDatabaseConnected(remote_mysql)) {
+        QMessageBox::critical(this, "警告", "远程数据库配置不正确，请检查配置，详情见日志 'mysql.log'.");
+        exit(-2);
+    }
+
+    // 检查远程数据库连接
+    if (!checkDatabaseConnected(local_mysql)) {
+        QMessageBox::critical(this, "警告", "本地数据库配置不正确，请检查配置，详情见日志 'mysql.log'.");
+        exit(-2);
+    }
+
+    // 创建远程数据库连接池
+    remote_pool_ = std::make_shared<ConnectionPool>();
+    remote_pool_->size((*ini_)["system"]["connect_pool"]);
+    remote_pool_->create(remote_mysql["host"], remote_mysql["port"], remote_mysql["username"], remote_mysql["password"], remote_mysql["database"], "utf8",
+                         true);
+
+    // 创建本地数据库连接池
+    local_pool_ = std::make_shared<ConnectionPool>();
+    local_pool_->size((*ini_)["system"]["connect_pool"]);
+    local_pool_->create(local_mysql["host"], local_mysql["port"], local_mysql["username"], local_mysql["password"], local_mysql["database"], "utf8", true);
+
+    return true;
+}
+
+bool MainWindow::checkDatabaseConnected(std::map<std::string, Value> mysql) {
+    zel::myorm::Database db;
+    bool                 is_connected = db.connect(mysql["host"], mysql["port"], mysql["username"], mysql["password"], mysql["database"]);
+    db.close();
+    return is_connected;
+}
+
+bool MainWindow::createOrderTable() {
+
+    auto conn = local_pool_->get();
+
+    // 创建表结构
+    std::string sql = "CREATE TABLE IF NOT EXISTS `" + order_id_ + "`(\n";
+    sql += "`id` int(10) NOT NULL AUTO_INCREMENT,\n`datafile` varchar(500) DEFAULT NULL,\n";
+    for (auto data : data_configs_) {
+        sql += "`" + data.first + "`" + "varchar(255) DEFAULT NULL,\n";
+    }
+    sql += "PRIMARY KEY (`ID`) USING BTREE\n) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC";
+
+    printf("%s\n", sql.c_str());
+
+    if (!conn->execute(sql)) {
+        log_error("failed to create table `%s`", order_id_.c_str());
         return false;
     }
 
-    // 创建数据库连接池
-    pool_.size(10);
-    pool_.create(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["username"], ini_["mysql"]["password"], ini_["mysql"]["database"], "utf8", true);
-
     return true;
-
-    // auto conn = pool.get();
-
-    // // 添加一条数据
-    // auto student    = Student(conn);
-    // student["name"] = "jack";
-    // student["age"]  = 18;
-    // student["sex"]  = "男";
-    // student.save();
-
-    // pool.put(conn);
 }
 
-bool MainWindow::checkDatabaseConnected() {
-    zel::myorm::Database db;
-    bool                 is_connected =
-        db.connect(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["username"], ini_["mysql"]["password"], ini_["mysql"]["database"]);
-    db.close();
-    return is_connected;
+bool MainWindow::query() {
+    auto conn        = local_pool_->get();
+    auto order_table = OrderTable(conn);
+    order_table.table(order_id_);
+    auto records = order_table.where("PUK1", "=", card_info_).all();
+    local_pool_->put(conn);
+
+    if (records.size() != 1) {
+        ui_->not_found_label->setVisible(true);
+        return false;
+    }
+
+    for (auto record : records) {
+        std::string filename = record("datafile");
+        std::string iccid    = record("ICCID");
+        std::string puk      = record("PUK1");
+        ui_->filename_line->setText(QString(filename.c_str()));
+        ui_->iccid_line->setText(QString(iccid.c_str()));
+        ui_->puk1_line->setText(QString(puk.c_str()));
+        ui_->result_group_box->setVisible(true);
+    }
+    return true;
 }
