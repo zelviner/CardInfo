@@ -1,5 +1,8 @@
 #pragma once
+#include "download_loading.h"
+#include "task/download.h"
 #include "ui_main_window.h"
+
 #include <QMainWindow>
 #include <memory>
 #include <vector>
@@ -15,14 +18,13 @@ class MainWindow : public QMainWindow {
 
     void queryBtnClicked();
 
-  private:
-    std::vector<std::vector<std::string>> getOrderData();
+  public slots:
+    void failure();
+    void success();
 
+  private:
     // 初始化窗口
     void initWindow();
-
-    // 初始化UI
-    void initUI();
 
     /// @brief 初始化信号槽
     void initSignalSlot();
@@ -35,6 +37,13 @@ class MainWindow : public QMainWindow {
 
     bool checkDatabaseConnected(std::map<std::string, Value> mysql_ini);
 
+    // 初始化UI
+    void initUI();
+
+    bool download();
+
+    std::vector<std::vector<std::string>> getOrderData();
+
     bool createOrderTable();
 
     bool downloadData();
@@ -42,7 +51,8 @@ class MainWindow : public QMainWindow {
     bool query();
 
   private:
-    Ui_MainWindow *ui_;
+    Ui_MainWindow   *ui_;
+    DownloadLoading *download_loading_;
 
     std::shared_ptr<zel::utility::IniFile>      ini_;
     std::shared_ptr<zel::myorm::ConnectionPool> remote_pool_;

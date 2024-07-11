@@ -1,6 +1,8 @@
 #include "main_window.h"
+#include "download_loading.h"
 #include "model/order_table.hpp"
 #include "model/xh_prjcfg.hpp"
+#include "task/download.h"
 #include "task/order.h"
 
 #include <zel/thread.h>
@@ -25,8 +27,6 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     initWindow();
 
-    initUI();
-
     initSignalSlot();
 
     initLogger();
@@ -34,12 +34,14 @@ MainWindow::MainWindow(QMainWindow *parent)
     initConfig("config.ini");
 
     initConnectionPool();
+
+    initUI();
 }
 
 MainWindow::~MainWindow() { delete ui_; }
 
 void MainWindow::queryBtnClicked() {
-    order_id_  = ui_->order_id_line->text().toStdString();
+    order_id_  = ui_->order_id_box->currentText().toStdString();
     card_info_ = ui_->card_info_line->text().toStdString();
     ui_->result_group_box->setVisible(false);
     ui_->not_found_label->setVisible(false);
@@ -49,25 +51,44 @@ void MainWindow::queryBtnClicked() {
         return;
     }
 
-    auto conn = local_pool_->get();
+    data_files_ = getOrderData();
 
-    // 查询订单表是否存在
-    if (!conn->table_exists(order_id_)) {
-
-        data_files_ = getOrderData();
-
-        if (!createOrderTable()) {
-            return;
-        }
-
-        downloadData();
+    if (data_files_.size() == 0) {
+        QMessageBox::critical(this, "警告", "未找到该订单，请检查订单号是否正确");
+        return;
     }
 
-    local_pool_->put(conn);
+    // 查询订单表是否存在
+    if (download()) {
 
-    // 查询
+        // 弹出下载加载窗口, 并停留
+        download_loading_ = new DownloadLoading(this);
+        download_loading_->show();
+
+        // 创建工作线程
+        auto download = new Download(ini_, remote_pool_, local_pool_, order_id_, card_info_, data_files_);
+
+        // 连接信号槽
+        // connec(download, &Download::)
+
+        // 启动工作线程
+        download->start();
+    } else {
+        // 查询
+        query();
+    }
+}
+
+void MainWindow::success() {
+
+    if (download_loading_ != nullptr) {
+        delete download_loading_;
+    }
+
     query();
 }
+
+void MainWindow::failure() {}
 
 std::vector<std::vector<std::string>> MainWindow::getOrderData() {
     std::vector<std::vector<std::string>> data_files;
@@ -75,6 +96,10 @@ std::vector<std::vector<std::string>> MainWindow::getOrderData() {
     auto conn = remote_pool_->get();
     auto all  = XhPrjcfg(conn).where("PrjId", "=", order_id_).all();
     remote_pool_->put(conn);
+
+    if (all.size() == 0) {
+        return data_files;
+    }
 
     std::string data_config = all[0]("DataCfgA").asString();
 
@@ -133,11 +158,6 @@ bool MainWindow::downloadData() {
 void MainWindow::initWindow() {
     // 设置窗口标题
     setWindowTitle("星汉卡片信息");
-}
-
-void MainWindow::initUI() {
-    ui_->result_group_box->setVisible(false);
-    ui_->not_found_label->setVisible(false);
 }
 
 void MainWindow::initSignalSlot() { connect(ui_->query_btn, &QPushButton::clicked, this, &MainWindow::queryBtnClicked); }
@@ -210,6 +230,26 @@ bool MainWindow::checkDatabaseConnected(std::map<std::string, Value> mysql) {
     bool                 is_connected = db.connect(mysql["host"], mysql["port"], mysql["username"], mysql["password"], mysql["database"]);
     db.close();
     return is_connected;
+}
+
+void MainWindow::initUI() {
+    ui_->result_group_box->setVisible(false);
+    ui_->not_found_label->setVisible(false);
+
+    auto conn   = local_pool_->get();
+    auto orders = conn->tables();
+    local_pool_->put(conn);
+
+    for (auto order : orders) {
+        ui_->order_id_box->addItem(QString(order.c_str()));
+    }
+}
+
+bool MainWindow::download() {
+    bool is_download = true;
+    auto conn        = local_pool_->get();
+    if (conn->table_exists(order_id_)) return false;
+    return is_download;
 }
 
 bool MainWindow::createOrderTable() {
