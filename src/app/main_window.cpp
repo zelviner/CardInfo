@@ -66,10 +66,10 @@ void MainWindow::queryBtnClicked() {
         download_loading_->show();
 
         // 创建工作线程
-        auto download = new Download(ini_, remote_pool_, local_pool_, order_id_, card_info_, data_files_);
+        auto download = new Download(ini_, remote_pool_, local_pool_, order_id_, card_info_, data_files_, data_configs_);
 
         // 连接信号槽
-        // connec(download, &Download::)
+        connect(download, &Download::success, this, &MainWindow::success);
 
         // 启动工作线程
         download->start();
@@ -281,6 +281,7 @@ bool MainWindow::query() {
     auto records = order_table.where("PUK1", "=", card_info_).all();
     local_pool_->put(conn);
 
+    printf("size: %d\n", records.size());
     if (records.size() != 1) {
         ui_->not_found_label->setVisible(true);
         return false;

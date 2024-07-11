@@ -8,13 +8,14 @@ using namespace zel::thread;
 
 Download::Download(std::shared_ptr<zel::utility::IniFile> ini, std::shared_ptr<zel::myorm::ConnectionPool> remote_pool,
                    std::shared_ptr<zel::myorm::ConnectionPool> local_pool, const std::string &order_id, const std::string &card_info,
-                   std::vector<std::vector<std::string>> &data_files)
+                   std::vector<std::vector<std::string>> &data_files, std::map<std::string, std::vector<int>> &data_configs)
     : ini_(ini)
     , remote_pool_(remote_pool)
     , local_pool_(local_pool)
     , order_id_(order_id)
     , card_info_(card_info)
-    , data_files_(data_files) {}
+    , data_files_(data_files)
+    , data_configs_(data_configs) {}
 
 Download::~Download() {}
 
