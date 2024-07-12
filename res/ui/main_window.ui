@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="query_btn">
     <property name="geometry">
      <rect>
-      <x>800</x>
-      <y>60</y>
-      <width>111</width>
-      <height>41</height>
+      <x>850</x>
+      <y>50</y>
+      <width>121</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
@@ -186,9 +186,9 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>440</x>
       <y>50</y>
-      <width>321</width>
+      <width>371</width>
       <height>51</height>
      </rect>
     </property>
@@ -223,12 +223,12 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>51</x>
       <y>50</y>
-      <width>271</width>
+      <width>341</width>
       <height>51</height>
      </rect>
     </property>
@@ -260,7 +260,7 @@
         <bool>true</bool>
        </property>
        <property name="currentText">
-        <string/>
+        <string>MO008846</string>
        </property>
       </widget>
      </item>
@@ -273,7 +273,7 @@
      <x>0</x>
      <y>0</y>
      <width>1014</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

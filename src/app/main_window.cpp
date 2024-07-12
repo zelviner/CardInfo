@@ -281,7 +281,6 @@ bool MainWindow::query() {
     auto records = order_table.where("PUK1", "=", card_info_).all();
     local_pool_->put(conn);
 
-    printf("size: %d\n", records.size());
     if (records.size() != 1) {
         ui_->not_found_label->setVisible(true);
         return false;
