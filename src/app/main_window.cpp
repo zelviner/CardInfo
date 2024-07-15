@@ -5,6 +5,7 @@
 #include "task/download.h"
 #include "task/order.h"
 
+#include <qpushbutton.h>
 #include <zel/thread.h>
 using namespace zel::thread;
 
@@ -80,6 +81,21 @@ void MainWindow::queryBtnClicked() {
     }
 }
 
+void MainWindow::deleteBtnClicked() {
+
+    auto order_id = ui_->order_id_box->currentText();
+
+    auto ques = QMessageBox::question(this, "提示", "确定删除订单 " + order_id + " 吗？", QMessageBox::Yes | QMessageBox::No);
+
+    if (ques == QMessageBox::No) return;
+
+    auto        conn = print_pool_->get();
+    Database    db(conn);
+    std::string sql = "drop table if exists `" + order_id.toStdString() + "`";
+    db.execute(sql);
+    print_pool_->put(conn);
+}
+
 void MainWindow::success() {
 
     if (download_loading_ != nullptr) {
@@ -133,7 +149,10 @@ void MainWindow::initWindow() {
     setWindowTitle("星汉卡片信息");
 }
 
-void MainWindow::initSignalSlot() { connect(ui_->query_btn, &QPushButton::clicked, this, &MainWindow::queryBtnClicked); }
+void MainWindow::initSignalSlot() {
+    connect(ui_->query_btn, &QPushButton::clicked, this, &MainWindow::queryBtnClicked);
+    connect(ui_->delete_btn, &QPushButton::clicked, this, &MainWindow::deleteBtnClicked);
+}
 
 void MainWindow::initLogger() {
     auto logger = Logger::instance();
