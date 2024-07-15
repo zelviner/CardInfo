@@ -2,7 +2,6 @@
 #include "model/xh_prjcfg.hpp"
 #include "task/order.h"
 
-#include <qobjectdefs.h>
 #include <zel/thread.h>
 using namespace zel::thread;
 
@@ -100,8 +99,13 @@ bool Download::download() {
         Task *task = new Order(remote_pool_, local_pool_, data_configs_, data_files_[i], card_info_, order_id_);
         task_dispatcher->assign(task);
     }
-    // 等待任务完成
-    task_dispatcher->wait();
+
+    while (true) {
+        double down = double(task_dispatcher->down()) / task_count * 100;
+        emit   threadDown(int(down));
+
+        if (down == task_count) break;
+    }
 
     // 计时结束
     auto end = std::chrono::system_clock::now();

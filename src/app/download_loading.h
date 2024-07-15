@@ -4,13 +4,16 @@
 
 #include <memory>
 #include <qmainwindow>
-
+#include <qobjectdefs.h>
 
 class DownloadLoading : public QMainWindow {
     Q_OBJECT
   public:
     DownloadLoading(QMainWindow *parent = nullptr);
     ~DownloadLoading();
+
+  public slots:
+    void threadDown(int down);
 
   private:
     // 初始化窗口

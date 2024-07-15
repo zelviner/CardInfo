@@ -6,34 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1014</width>
-    <height>613</height>
+    <width>1012</width>
+    <height>507</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="query_btn">
-    <property name="geometry">
-     <rect>
-      <x>850</x>
-      <y>50</y>
-      <width>121</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>🔍</string>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>120</y>
-      <width>961</width>
-      <height>441</height>
+      <y>80</y>
+      <width>971</width>
+      <height>381</height>
      </rect>
     </property>
     <property name="font">
@@ -50,8 +37,8 @@
     <widget class="QLabel" name="not_found_label">
      <property name="geometry">
       <rect>
-       <x>320</x>
-       <y>200</y>
+       <x>330</x>
+       <y>150</y>
        <width>301</width>
        <height>81</height>
       </rect>
@@ -77,10 +64,10 @@
     <widget class="QGroupBox" name="result_group_box">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>80</y>
-       <width>901</width>
-       <height>301</height>
+       <x>50</x>
+       <y>60</y>
+       <width>851</width>
+       <height>261</height>
       </rect>
      </property>
      <property name="title">
@@ -88,7 +75,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,7">
         <item>
          <widget class="QLabel" name="label_2">
           <property name="font">
@@ -119,7 +106,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,7">
         <item>
          <widget class="QLabel" name="iccid_label">
           <property name="font">
@@ -150,7 +137,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,7">
         <item>
          <widget class="QLabel" name="puk1_label">
           <property name="font">
@@ -183,16 +170,16 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QWidget" name="layoutWidget">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>50</y>
-      <width>371</width>
-      <height>51</height>
+      <x>510</x>
+      <y>20</y>
+      <width>451</width>
+      <height>36</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,4,1">
      <item>
       <widget class="QLabel" name="label">
        <property name="font">
@@ -221,18 +208,31 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="query_btn">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>搜索</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="layoutWidget">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>51</x>
-      <y>50</y>
-      <width>341</width>
-      <height>51</height>
+      <x>50</x>
+      <y>20</y>
+      <width>441</width>
+      <height>36</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,3">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,4,1">
      <item>
       <widget class="QLabel" name="label_3">
        <property name="font">
@@ -264,6 +264,19 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="delete_btn">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>删除</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -272,8 +285,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1014</width>
-     <height>26</height>
+     <width>1012</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

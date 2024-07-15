@@ -14,6 +14,8 @@ DownloadLoading::DownloadLoading(QMainWindow *parent)
 
 DownloadLoading::~DownloadLoading() {}
 
+void DownloadLoading::threadDown(int down) { ui_->progressBar->setValue(down); }
+
 void DownloadLoading::initWindow() { setWindowTitle("索引中 ..."); }
 
 void DownloadLoading::initUI() {}

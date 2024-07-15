@@ -21,6 +21,7 @@ class Download : public QThread {
     // 信号函数，用于向外界发射信号
     void failure();
     void success();
+    void threadDown(int down);
 
   private:
     std::vector<std::vector<std::string>> getOrderData();
