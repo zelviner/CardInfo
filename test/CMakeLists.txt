@@ -18,3 +18,4 @@ find_package(GTest REQUIRED)
 enable_testing()
 
 # 添加测试
+add_test_executable(crpto zel)

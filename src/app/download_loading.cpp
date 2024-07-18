@@ -1,4 +1,5 @@
 #include "download_loading.h"
+#include <qnamespace.h>
 
 DownloadLoading::DownloadLoading(QMainWindow *parent)
     : QMainWindow(parent)
@@ -16,7 +17,10 @@ DownloadLoading::~DownloadLoading() {}
 
 void DownloadLoading::threadDown(int down) { ui_->progressBar->setValue(down); }
 
-void DownloadLoading::initWindow() { setWindowTitle("索引中 ..."); }
+void DownloadLoading::initWindow() {
+    setWindowTitle("索引中 ...");
+    setWindowModality(Qt::ApplicationModal);
+}
 
 void DownloadLoading::initUI() {}
 

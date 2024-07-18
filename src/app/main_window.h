@@ -22,9 +22,17 @@ class MainWindow : public QMainWindow {
     /// @brief 删除订单按钮点击事件
     void deleteBtnClicked();
 
+    /// @brief 保存设置按钮点击事件
+    void saveBtnClicked();
+
   public slots:
     void failure();
+
     void success();
+
+    void notFound();
+
+    void showResult(const QString &filename, const QString &iccid, const QString &puk);
 
   private:
     /// @brief 初始化窗口
@@ -50,22 +58,24 @@ class MainWindow : public QMainWindow {
     /// @brief 初始化界面
     void initUI();
 
-    bool download();
+    /// @brief  订单数据是否存在
+    bool orderDataIsExist();
 
-    std::vector<std::vector<std::string>> getOrderData();
+    /// @brief Get the Data Files object
+    /// @return std::vector<std::string>  订单文件列表
+    std::vector<std::string> dataFiles();
 
+    /// @brief Get the Data Index object
+    std::map<std::string, std::vector<int>> dataConfig(const std::string &data_config_str);
+
+    /// @brief  查询卡信息
     bool query();
 
   private:
     Ui_MainWindow   *ui_;
     DownloadLoading *download_loading_;
+    Download        *download_;
+    // QMovie          *movie_;
 
-    std::shared_ptr<zel::utility::IniFile>      ini_;
-    std::shared_ptr<zel::myorm::ConnectionPool> data_pool_;
-    std::shared_ptr<zel::myorm::ConnectionPool> print_pool_;
-
-    std::string                             card_info_;
-    std::string                             order_id_;
-    std::map<std::string, std::vector<int>> data_configs_;
-    std::vector<std::vector<std::string>>   data_files_;
+    std::shared_ptr<Data> data_;
 };
