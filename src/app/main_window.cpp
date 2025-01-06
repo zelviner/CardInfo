@@ -151,7 +151,7 @@ void MainWindow::showResult(const QString &filename, const QString &iccid, const
 
 void MainWindow::initWindow() {
     // 设置窗口标题
-    setWindowTitle("星汉卡片信息");
+    setWindowTitle("查询卡片信息");
 }
 
 void MainWindow::initSignalSlot() {

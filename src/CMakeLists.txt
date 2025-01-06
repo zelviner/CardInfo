@@ -25,8 +25,8 @@ file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_LIST_DIR}/*.cpp ${CMAKE_CURRENT_LIST_D
 file(GLOB RESOURCES ${CMAKE_SOURCE_DIR}/res/rc/*)
 
 # 添加可执行文件
-# add_executable(${APP_NAME}  ${SOURCES} ${RESOURCES}) #debug
-add_executable(${APP_NAME} WIN32 ${SOURCES} ${RESOURCES}  ${MY_VERSIONINFO_RC}) # release
+add_executable(${APP_NAME}  ${SOURCES} ${RESOURCES}) #debug
+# add_executable(${APP_NAME} WIN32 ${SOURCES} ${RESOURCES}  ${MY_VERSIONINFO_RC}) # release
 
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
