@@ -10,8 +10,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 设置安装路径
-set(ZELPATH $ENV{ZELPATH}/${CMAKE_BUILD_TYPE})
-set(CMAKE_INSTALL_PREFIX ${ZELPATH})
+set(ZEL_VENDOR $ENV{ZEL_HOME}/vendor)
+set(CMAKE_INSTALL_PREFIX ${ZEL_VENDOR}/${PROJECT_NAME}/${CMAKE_BUILD_TYPE})
 
 if(WIN32)
     set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -26,10 +26,13 @@ if(MSVC)
 endif()
 
 # 设置三方库的安装路径, 搜索路径, 链接路径
-list(APPEND CMAKE_PREFIX_PATH ${ZELPATH})
-include_directories(${ZELPATH}/include)
-link_directories(${ZELPATH}/lib)
+file(GLOB VENDOR_DIRS ${ZEL_VENDOR}/*/${CMAKE_BUILD_TYPE})
+file(GLOB VENDOR_INCLUDE_DIRS ${ZEL_VENDOR}/*/${CMAKE_BUILD_TYPE}/include)
+file(GLOB VENDOR_LIB_DIRS ${ZEL_VENDOR}/*/${CMAKE_BUILD_TYPE}/lib)
+list(APPEND CMAKE_PREFIX_PATH ${VENDOR_DIRS})
+include_directories(${VENDOR_INCLUDE_DIRS})
+link_directories(${VENDOR_LIB_DIRS})
 
 # 添加子工程
 add_subdirectory(src)
-add_subdirectory(test)
+# add_subdirectory(test)

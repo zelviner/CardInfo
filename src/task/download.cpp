@@ -1,9 +1,9 @@
 #include "download.h"
 #include "task/order.h"
 
-#include <functional>
 #include <qobjectdefs.h>
-#include <zel/thread.h>
+#include <zel.h>
+
 using namespace zel::thread;
 
 Download::Download(std::shared_ptr<Data> data)

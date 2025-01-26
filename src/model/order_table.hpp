@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zel/myorm.h>
+#include <zel.h>
 
 class OrderTable : public zel::myorm::Model<OrderTable> {
   public:

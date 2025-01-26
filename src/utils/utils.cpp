@@ -1,6 +1,6 @@
 #include "utils.h"
 
-#include <zel/crypto/des.h>
+#include <zel.h>
 
 std::string encrypt(const std::string &plain_text) {
 

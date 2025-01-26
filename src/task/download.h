@@ -4,8 +4,7 @@
 
 #include <memory>
 #include <qthread>
-#include <zel/myorm.h>
-#include <zel/utility.h>
+#include <zel.h>
 
 class Download : public QThread {
     Q_OBJECT

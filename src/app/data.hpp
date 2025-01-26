@@ -1,8 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <zel/myorm.h>
-#include <zel/utility.h>
+#include <zel.h>
 
 struct Data {
     std::shared_ptr<zel::utility::IniFile>      ini;

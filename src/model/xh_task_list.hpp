@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zel/myorm.h>
+#include <zel.h>
 
 class XhTaskList : public zel::myorm::Model<XhTaskList> {
   public:

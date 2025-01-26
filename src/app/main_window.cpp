@@ -2,23 +2,18 @@
 #include "model/xh_prjcfg.hpp"
 #include "task/order.h"
 #include "task/query.h"
-#include "utils/utils.h"
-
-#include <qpushbutton.h>
-#include <qvariant.h>
-#include <zel/thread.h>
-using namespace zel::thread;
-
-#include <zel/utility.h>
-using namespace zel::utility;
-using namespace zel::myorm;
 
 #include <cstdlib>
-#include <memory>
 #include <qmessagebox.h>
 #include <qmessagebox>
 #include <qmovie>
+#include <qpushbutton.h>
+#include <qvariant.h>
 #include <vector>
+
+using namespace zel::thread;
+using namespace zel::utility;
+using namespace zel::myorm;
 
 MainWindow::MainWindow(QMainWindow *parent)
     : QMainWindow(parent)
@@ -39,7 +34,6 @@ MainWindow::MainWindow(QMainWindow *parent)
     initConnectionPool();
 
     initUI();
-
 }
 
 MainWindow::~MainWindow() { delete ui_; }

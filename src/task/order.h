@@ -2,11 +2,9 @@
 
 #include "app/data.hpp"
 
-#include <zel/myorm.h>
-#include <zel/thread.h>
-#include <zel/utility.h>
-
 #include <qmainwindow.h>
+#include <zel.h>
+
 
 class Order : public zel::thread::Task {
   public:

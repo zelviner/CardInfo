@@ -6,8 +6,7 @@
 #include <QMainWindow>
 #include <memory>
 #include <vector>
-#include <zel/myorm.h>
-#include <zel/utility.h>
+#include <zel.h>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT

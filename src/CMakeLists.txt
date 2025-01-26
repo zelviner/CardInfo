@@ -30,6 +30,25 @@ add_executable(${APP_NAME}  ${SOURCES} ${RESOURCES}) #debug
 
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
+# 添加编译时的宏定义
+target_compile_definitions(${APP_NAME}
+PUBLIC
+    # 1. NOLFS: 自定义宏，用于禁用某些文件系统（LFS）相关的特性或功能
+    NOLFS
+
+    # 2. _CRT_SECURE_NO_WARNINGS: 禁用 Microsoft Visual Studio 对不安全 C 运行时函数的警告
+    #    例如，禁用对使用 `strcpy`、`scanf` 等函数时的警告
+    _CRT_SECURE_NO_WARNINGS
+
+    # 3. _WINSOCK_DEPRECATED_NO_WARNINGS: 禁用关于过时的 Windows Sockets (Winsock) API 的警告
+    #    用于忽略如 `recv`、`send` 等函数的过时警告
+    _WINSOCK_DEPRECATED_NO_WARNINGS
+
+    # 4. BUILDING_DLL: 用于标识正在编译一个动态链接库（DLL）
+    #    在代码中可以使用 `#ifdef BUILDING_DLL` 来启用或禁用 DLL 特定的功能
+    BUILDING_DLL
+)
+
 # # 为target添加头文件
 # target_include_directories(${APP_NAME}
 #     PUBLIC
@@ -47,10 +66,10 @@ TARGET_LINK_LIBRARIES(${APP_NAME}
         Qt5::Core
         Qt5::Gui
         Qt5::Widgets
-        "libcrypto32MD.lib"
-        "libssl32MD.lib"
-        "Crypt32.lib"   
-        "ws2_32.lib"
-        "zel.lib"
-        "libmysql.lib"
+        VC/libcrypto32MD
+        VC/libssl32MD
+        Crypt32
+        ws2_32
+        zel
+        libmysql
 )

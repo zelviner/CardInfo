@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zel/myorm.h>
+#include <zel.h>
 
 class XhPrjcfg : public zel::myorm::Model<XhPrjcfg> {
   public:
