@@ -3,7 +3,7 @@
 #include "app/data.hpp"
 
 #include <qmainwindow.h>
-#include <zel.h>
+#include <zel/zel.h>
 
 
 class Order : public zel::thread::Task {

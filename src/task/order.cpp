@@ -5,7 +5,7 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <zel.h>
+#include <zel/zel.h>
 
 using namespace zel::myorm;
 using namespace zel::utility;

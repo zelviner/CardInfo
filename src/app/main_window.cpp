@@ -187,7 +187,7 @@ bool MainWindow::initConnectionPool() {
     // 检查数据库连接
     if (!checkDatabaseConnected(mysql)) {
         QMessageBox::critical(this, "警告", "远程数据库配置不正确，请检查配置，详情见日志 'error.log'.");
-        exit(-2);
+        return false;
     }
 
     // 创建数据服务数据库连接池

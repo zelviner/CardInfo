@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "zel.h"
+#include "utils/utils.h"
 
 TEST(Crpto, class) {
     std::string plain_text = "123456";

@@ -2,7 +2,7 @@
 #include "task/order.h"
 
 #include <qobjectdefs.h>
-#include <zel.h>
+#include <zel/zel.h>
 
 using namespace zel::thread;
 
