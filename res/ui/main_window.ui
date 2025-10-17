@@ -133,7 +133,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="order_id_box">
+          <widget class="QComboBox" name="order_no_box">
            <property name="font">
             <font>
              <family>微软雅黑</family>

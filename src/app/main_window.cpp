@@ -1,8 +1,10 @@
 #include "main_window.h"
-#include "model/xh_prjcfg.hpp"
+#include "myorm/database.h"
+#include "order/order.h"
 #include "task/order.h"
 #include "task/query.h"
 
+#include <memory>
 #include <qmessagebox.h>
 #include <qmessagebox>
 #include <qmovie>
@@ -32,7 +34,7 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     init_config("config.ini");
 
-    init_connection_pool();
+    init_database();
 
     init_ui();
 }
@@ -40,50 +42,29 @@ MainWindow::MainWindow(QMainWindow *parent)
 MainWindow::~MainWindow() { delete ui_; }
 
 void MainWindow::queryBtnClicked() {
-    data_->order_no  = ui_->order_id_box->currentText().toStdString();
-    data_->card_info = ui_->card_info_line->text().toStdString();
+    std::string order_no  = ui_->order_no_box->currentText().toStdString();
+    std::string card_info = ui_->card_info_line->text().toStdString();
     ui_->result_group_box->hide();
     ui_->not_found_label->hide();
 
-    if (data_->order_no == "" || data_->card_info == "") {
+    if (order_no == "" || card_info == "") {
         QMessageBox::critical(this, "警告", "订单号或卡信息为空");
         return;
     }
 
-    data_->files = data_files();
-
-    if (data_->files.size() == 0) {
-        QMessageBox::critical(this, "警告", "未找到该订单，请检查订单号是否正确");
-        return;
-    }
-
     // 查询订单数据是否存在
-    if (order_data_is_exist()) {
-        // 弹出下载加载窗口, 并停留
-        if (download_loading_ == nullptr) {
-            download_loading_ = new DownloadLoading(this);
-        }
-        download_loading_->show();
-
-        if (download_ == nullptr) {
-            download_ = new Download(data_);
-        }
-
-        // 连接信号槽
-        connect(download_, &Download::success, this, &MainWindow::success);
-        connect(download_, &Download::threadDown, download_loading_, &DownloadLoading::threadDown);
-
-        // 启动工作线程
-        download_->start();
-    } else {
+    Order order(db_);
+    if (order.exists(order_no)) {
         // 查询
         query();
+    } else {
+        QMessageBox::critical(this, "警告", "未找到该订单，请检查订单号是否正确");
     }
 }
 
 void MainWindow::deleteBtnClicked() {
 
-    auto order_no = ui_->order_id_box->currentText();
+    auto order_no = ui_->order_no_box->currentText();
 
     auto ques = QMessageBox::question(this, "提示", "确定删除订单 " + order_no + " 吗？", QMessageBox::Yes | QMessageBox::No);
 
@@ -162,53 +143,38 @@ void MainWindow::init_logger() {
 }
 
 void MainWindow::init_config(const std::string &ini_file) {
-    data_->ini = std::make_shared<Ini>();
-    if (data_->ini->exists(ini_file)) {
-        data_->ini->load(ini_file);
+    if (ini_.exists(ini_file)) {
+        ini_.load(ini_file);
     } else {
-        data_->ini->set("system", "connect_count", 10);
-        data_->ini->set("system", "thread_count", 8);
+        ini_.set("system", "connect_count", 10);
+        ini_.set("system", "thread_count", 8);
 
-        data_->ini->set("mysql", "host", "127.0.0.1");
-        data_->ini->set("mysql", "port", 3306);
-        data_->ini->set("mysql", "username", "root");
-        data_->ini->set("mysql", "password", "123456");
-        data_->ini->set("mysql", "data_database", "xh_data_server");
-        data_->ini->set("mysql", "print_database", "xh_print_data");
+        ini_.set("mysql", "host", "127.0.0.1");
+        ini_.set("mysql", "port", 3306);
+        ini_.set("mysql", "username", "root");
+        ini_.set("mysql", "password", "123456");
+        ini_.set("mysql", "data_database", "if_dms");
+        ini_.set("mysql", "print_database", "xh_print_data");
 
-        data_->ini->save(ini_file);
+        ini_.save(ini_file);
     }
 }
 
-bool MainWindow::init_connection_pool() {
-
-    auto mysql = (*data_->ini)["mysql"];
-
-    // 检查数据库连接
-    if (!check_database_connected(mysql)) {
-        QMessageBox::critical(this, "警告", "远程数据库配置不正确，请检查配置，详情见日志 'error.log'.");
+bool MainWindow::init_database() {
+    db_ = std::make_shared<zel::myorm::Database>();
+    if (!db_->connect(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["user"], ini_["mysql"]["password"], ini_["mysql"]["database"])) {
+        QMessageBox::critical(this, "错误", "数据库连接失败");
         return false;
     }
 
-    // 创建数据服务数据库连接池
-    data_->data_pool = std::make_shared<ConnectionPool>();
-    data_->data_pool->size((*data_->ini)["system"]["connect_count"]);
-    data_->data_pool->create(mysql["host"], mysql["port"], mysql["username"], mysql["password"], mysql["data_database"], "utf8", true);
+    Order order(db_);
+    auto  orders = order.orders();
 
-    // 创建打印数据数据库连接池
-    data_->print_pool = std::make_shared<ConnectionPool>();
-    data_->print_pool->size((*data_->ini)["system"]["connect_count"]);
-    data_->print_pool->create(mysql["host"], mysql["port"], mysql["username"], mysql["password"], mysql["print_database"], "utf8", true);
+    for (auto order : orders) {
+        ui_->order_no_box->addItem(QString::fromStdString(order));
+    }
 
     return true;
-}
-
-bool MainWindow::check_database_connected(std::map<std::string, Value> mysql) {
-    zel::myorm::Database db;
-    bool                 is_connected = db.connect(mysql["host"], mysql["port"], mysql["username"], mysql["password"], mysql["data_database"]);
-    is_connected                      = db.connect(mysql["host"], mysql["port"], mysql["username"], mysql["password"], mysql["print_database"]);
-    db.close();
-    return is_connected;
 }
 
 void MainWindow::init_ui() {
@@ -247,68 +213,8 @@ void MainWindow::init_ui() {
 
     for (auto order : orders) {
         String::toUpper(order);
-        ui_->order_id_box->addItem(QString(order.c_str()));
+        ui_->order_no_box->addItem(QString(order.c_str()));
     }
-}
-
-bool MainWindow::order_data_is_exist() {
-    bool is_download = true;
-    auto conn        = data_->print_pool->get();
-    if (conn->table_exists(data_->order_no)) return false;
-    data_->print_pool->put(conn);
-    return is_download;
-}
-
-std::vector<std::string> MainWindow::data_files() {
-    std::vector<std::string> data_files;
-
-    auto conn = data_->data_pool->get();
-    auto all  = XhPrjcfg(conn).where("PrjId", "=", data_->order_no).all();
-    data_->data_pool->put(conn);
-    std::string config = all[0]("DataCfgA").asString();
-
-    data_->configs = data_config(config);
-
-    for (int i = 0; i < all.size(); i++) {
-        std::string data_file = all[i]("DataFiles");
-
-        if (data_file.find(".prd") == std::string::npos) {
-            continue;
-        }
-
-        String::toLower(data_file);
-        data_files.push_back(data_file);
-    }
-
-    return data_files;
-}
-
-std::map<std::string, std::vector<int>> MainWindow::data_config(const std::string &data_config) {
-
-    std::map<std::string, std::vector<int>> data_indexs;
-
-    auto        data_configs = String::split(data_config, ",");
-    std::string header, data = "";
-    int         index  = 0;
-    int         length = 0;
-
-    for (auto config : data_configs) {
-        std::vector<int> indexs;
-        header = config.substr(0, config.find(":"));
-        length = stoi(config.substr(config.find(":") + 1));
-
-        indexs.push_back(index);
-        indexs.push_back(length);
-
-        index += length;
-
-        int interception = header.find("PRINT");
-        if (interception != std::string::npos) {
-            data_indexs[header.substr(interception + 6)] = indexs;
-        }
-    }
-
-    return data_indexs;
 }
 
 bool MainWindow::query() {

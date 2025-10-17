@@ -56,20 +56,20 @@ bool Download::download() {
     // 计时开始
     auto start = std::chrono::system_clock::now();
 
-    // 创建线程任务
-    for (int i = 0; i < task_count; i++) {
-        Data *data       = new Data;
-        data->data_pool  = data_->data_pool;
-        data->print_pool = data_->print_pool;
-        data->configs    = data_->configs;
-        data->file       = data_->files[i];
-        data->order_no   = data_->order_no;
+    // // 创建线程任务
+    // for (int i = 0; i < task_count; i++) {
+    //     Data *data       = new Data;
+    //     data->data_pool  = data_->data_pool;
+    //     data->print_pool = data_->print_pool;
+    //     data->configs    = data_->configs;
+    //     data->file       = data_->files[i];
+    //     data->order_no   = data_->order_no;
 
-        Task *task = new Order();
-        task->data(data);
+    //     Task *task = new Order();
+    //     task->data(data);
 
-        task_dispatcher->assign(task);
-    }
+    //     task_dispatcher->assign(task);
+    // }
 
     // 等待任务完成并获取完成数
     while (true) {
