@@ -1,4 +1,5 @@
 #include "main_window.h"
+#include "myorm/connection_pool.h"
 #include "myorm/database.h"
 #include "order/order.h"
 #include "task/order.h"
@@ -14,16 +15,13 @@
 #include <zel/utility/logger.h>
 #include <zel/utility/string.h>
 
-using namespace zel::thread;
 using namespace zel::utility;
 using namespace zel::myorm;
 
 MainWindow::MainWindow(QMainWindow *parent)
     : QMainWindow(parent)
     , ui_(new Ui_MainWindow)
-    , download_(nullptr)
-    , download_loading_(nullptr)
-    , data_(std::make_shared<Data>()) {
+    , download_loading_(nullptr) {
     ui_->setupUi(this);
 
     init_window();
@@ -34,7 +32,7 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     init_config("config.ini");
 
-    init_database();
+    init_connection_pool();
 
     init_ui();
 }
@@ -52,76 +50,100 @@ void MainWindow::queryBtnClicked() {
         return;
     }
 
+    auto conn = connection_pool_->get();
     // 查询订单数据是否存在
-    Order order(db_);
+    Order order(conn);
     if (order.exists(order_no)) {
-        // 查询
-        query();
+        connection_pool_->put(conn);
+        // // 查询
+        // query();
+
+        finished_count_ = 0;
+        ui_->query_label->show();
+        ui_->query_gif_label->show();
+
+        // 每 10000 条数据启动一次查询线程
+
+        int data_size = order.dataSize(order_no);
+        if (data_size == 0) {
+            QMessageBox::critical(this, "警告", "该订单无卡信息");
+            ui_->query_label->hide();
+            ui_->query_gif_label->hide();
+            ui_->not_found_label->show();
+            return;
+        }
+
+        qRegisterMetaType<std::shared_ptr<CardInfo>>("std::shared_ptr<CardInfo>");
+
+        int thread_count    = ui_->thread_count_spin_box->value();
+        int data_per_thread = data_size / thread_count;
+        int data_left       = data_size % thread_count;
+        for (int i = 0; i < thread_count; i++) {
+            int start_id = i * data_per_thread + (i < data_left ? i : data_left) + 1;
+            int end_id   = start_id + data_per_thread + (i < data_left ? 1 : 0) - 1;
+
+            Query *query = new Query(connection_pool_, order_no, card_info, start_id, end_id);
+            // 连接信号槽
+            connect(query, &Query::found, this, &MainWindow::found);
+            connect(query, &Query::notFound, this, &MainWindow::notFound);
+            connect(query, &QThread::finished, query, &QObject::deleteLater);
+
+            // 启动工作线程
+            query->start();
+        }
     } else {
+        connection_pool_->put(conn);
         QMessageBox::critical(this, "警告", "未找到该订单，请检查订单号是否正确");
     }
 }
 
-void MainWindow::deleteBtnClicked() {
-
-    auto order_no = ui_->order_no_box->currentText();
-
-    auto ques = QMessageBox::question(this, "提示", "确定删除订单 " + order_no + " 吗？", QMessageBox::Yes | QMessageBox::No);
-
-    if (ques == QMessageBox::No) return;
-
-    auto        conn = data_->print_pool->get();
-    Database    db(conn);
-    std::string sql = "drop table if exists `" + order_no.toStdString() + "`";
-    db.execute(sql);
-    data_->print_pool->put(conn);
-}
-
 void MainWindow::saveBtnClicked() {
-    data_->ini->set("system", "connect_count", ui_->connect_count_spin_box->value());
-    data_->ini->set("system", "thread_count", ui_->thread_count_spin_box->value());
+    ini_.set("system", "connect_count", ui_->connect_count_spin_box->value());
+    ini_.set("system", "thread_count", ui_->thread_count_spin_box->value());
 
-    data_->ini->set("mysql", "host", ui_->host_line->text().toStdString());
-    data_->ini->set("mysql", "port", ui_->port_line->text().toStdString());
-    data_->ini->set("mysql", "username", ui_->username_line->text().toStdString());
-    data_->ini->set("mysql", "password", ui_->password_line->text().toStdString());
-    data_->ini->set("mysql", "data_database", ui_->data_database_line->text().toStdString());
-    data_->ini->set("mysql", "print_database", ui_->print_database_line->text().toStdString());
+    ini_.set("mysql", "host", ui_->host_line->text().toStdString());
+    ini_.set("mysql", "port", ui_->port_line->text().toStdString());
+    ini_.set("mysql", "username", ui_->username_line->text().toStdString());
+    ini_.set("mysql", "password", ui_->password_line->text().toStdString());
+    ini_.set("mysql", "database", ui_->database_line->text().toStdString());
 
-    data_->ini->save("config.ini");
+    ini_.save("config.ini");
 
     QMessageBox::information(this, "提示", "设置保存成功");
 }
 
-void MainWindow::success() {
+// void MainWindow::success() {
 
-    if (download_loading_ != nullptr) {
-        delete download_loading_;
-        download_loading_ = nullptr;
-    }
+//     if (download_loading_ != nullptr) {
+//         delete download_loading_;
+//         download_loading_ = nullptr;
+//     }
 
-    download_->destroyed();
-    download_ = nullptr;
+//     download_->destroyed();
+//     download_ = nullptr;
 
-    printf("success\n");
+//     printf("success\n");
 
-    query();
-}
+//     query();
+// }
 
 void MainWindow::failure() {}
 
 void MainWindow::notFound() {
-    ui_->query_label->hide();
-    ui_->query_gif_label->hide();
-    ui_->not_found_label->show();
+    finished_count_++;
+    if (finished_count_ == ui_->thread_count_spin_box->value()) {
+        ui_->query_label->hide();
+        ui_->query_gif_label->hide();
+        ui_->not_found_label->show();
+    }
 }
 
-void MainWindow::showResult(const QString &filename, const QString &iccid, const QString &puk) {
+void MainWindow::found(std::shared_ptr<CardInfo> card_info) {
     ui_->query_label->hide();
     ui_->query_gif_label->hide();
-    ui_->filename_line->setText(filename);
-    ui_->iccid_line->setText(iccid);
-    ui_->puk1_line->setText(puk);
+    ui_->filename_line->setText(card_info->file_name.c_str());
+    ui_->iccid_line->setText(card_info->iccid.c_str());
+    ui_->puk1_line->setText(card_info->imsi.c_str());
     ui_->result_group_box->show();
 }
 
@@ -132,7 +154,6 @@ void MainWindow::init_window() {
 
 void MainWindow::init_signals_slots() {
     connect(ui_->query_btn, &QPushButton::clicked, this, &MainWindow::queryBtnClicked);
-    connect(ui_->delete_btn, &QPushButton::clicked, this, &MainWindow::deleteBtnClicked);
     connect(ui_->save_btn, &QPushButton::clicked, this, &MainWindow::saveBtnClicked);
 }
 
@@ -153,27 +174,33 @@ void MainWindow::init_config(const std::string &ini_file) {
         ini_.set("mysql", "port", 3306);
         ini_.set("mysql", "username", "root");
         ini_.set("mysql", "password", "123456");
-        ini_.set("mysql", "data_database", "if_dms");
-        ini_.set("mysql", "print_database", "xh_print_data");
+        ini_.set("mysql", "database", "if_dms");
 
         ini_.save(ini_file);
     }
 }
 
-bool MainWindow::init_database() {
-    db_ = std::make_shared<zel::myorm::Database>();
-    if (!db_->connect(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["user"], ini_["mysql"]["password"], ini_["mysql"]["database"])) {
+bool MainWindow::init_connection_pool() {
+    connection_pool_ = std::make_shared<zel::myorm::ConnectionPool>();
+    connection_pool_->size(ini_["system"]["connect_count"]);
+    connection_pool_->create(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["username"], ini_["mysql"]["password"], ini_["mysql"]["database"],
+                             "utf8");
+
+    auto conn = connection_pool_->get();
+
+    if (conn == nullptr) {
         QMessageBox::critical(this, "错误", "数据库连接失败");
         return false;
     }
 
-    Order order(db_);
+    Order order(conn);
     auto  orders = order.orders();
 
     for (auto order : orders) {
         ui_->order_no_box->addItem(QString::fromStdString(order));
     }
 
+    connection_pool_->put(conn);
     return true;
 }
 
@@ -187,18 +214,14 @@ void MainWindow::init_ui() {
     ui_->query_gif_label->setScaledContents(true);
     movie->start();
 
-    // 初始化 设置 tab
-    // ui_->host_line->
-
-    auto mysql_ini = (*data_->ini)["mysql"];
+    auto mysql_ini = ini_["mysql"];
     ui_->host_line->setText(QString(mysql_ini["host"].asString().c_str()));
     ui_->port_line->setText(QString(mysql_ini["port"].asString().c_str()));
     ui_->username_line->setText(QString(mysql_ini["username"].asString().c_str()));
     ui_->password_line->setText(QString(mysql_ini["password"].asString().c_str()));
-    ui_->data_database_line->setText(QString(mysql_ini["data_database"].asString().c_str()));
-    ui_->print_database_line->setText(QString(mysql_ini["print_database"].asString().c_str()));
+    ui_->database_line->setText(QString(mysql_ini["database"].asString().c_str()));
 
-    auto system_ini = (*data_->ini)["system"];
+    auto system_ini = ini_["system"];
     ui_->connect_count_spin_box->setValue(system_ini["connect_count"]);
     ui_->thread_count_spin_box->setValue(system_ini["thread_count"]);
 
@@ -206,29 +229,4 @@ void MainWindow::init_ui() {
     ui_->not_found_label->hide();
     ui_->query_label->hide();
     ui_->query_gif_label->hide();
-
-    auto conn   = data_->print_pool->get();
-    auto orders = conn->tables();
-    data_->print_pool->put(conn);
-
-    for (auto order : orders) {
-        String::toUpper(order);
-        ui_->order_no_box->addItem(QString(order.c_str()));
-    }
-}
-
-bool MainWindow::query() {
-
-    ui_->query_label->show();
-    ui_->query_gif_label->show();
-
-    Query *query = new Query(data_);
-    // 连接信号槽
-    connect(query, &Query::showResult, this, &MainWindow::showResult);
-    connect(query, &Query::notFound, this, &MainWindow::notFound);
-
-    // 启动工作线程
-    query->start();
-
-    return true;
 }

@@ -261,7 +261,7 @@
               </font>
              </property>
              <property name="text">
-              <string>PUK1:</string>
+              <string>IMSI:</string>
              </property>
             </widget>
            </item>
@@ -347,8 +347,8 @@
          <rect>
           <x>11</x>
           <y>11</y>
-          <width>1011</width>
-          <height>211</height>
+          <width>1021</width>
+          <height>231</height>
          </rect>
         </property>
         <property name="title">
@@ -569,7 +569,7 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="1,5,1,5,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="1,5,7">
            <item>
             <spacer name="horizontalSpacer_10">
              <property name="orientation">
@@ -584,7 +584,7 @@
             </spacer>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,3">
+            <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,2">
              <item>
               <widget class="QLabel" name="label_6">
                <property name="font">
@@ -596,12 +596,12 @@
                 </font>
                </property>
                <property name="text">
-                <string>订单数据库：</string>
+                <string>数据库：</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="data_database_line">
+              <widget class="QLineEdit" name="database_line">
                <property name="font">
                 <font>
                  <family>微软雅黑</family>
@@ -616,50 +616,6 @@
            </item>
            <item>
             <spacer name="horizontalSpacer_11">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="1,2">
-             <item>
-              <widget class="QLabel" name="label_9">
-               <property name="font">
-                <font>
-                 <family>微软雅黑</family>
-                 <pointsize>14</pointsize>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>打印数据库：</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="print_database_line">
-               <property name="font">
-                <font>
-                 <family>微软雅黑</family>
-                 <pointsize>14</pointsize>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_12">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>

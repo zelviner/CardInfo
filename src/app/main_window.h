@@ -1,12 +1,12 @@
 #pragma once
 #include "download_loading.h"
-#include "myorm/database.h"
-#include "task/download.h"
+#include "myorm/connection_pool.h"
+#include "order/card_info.h"
 #include "ui_main_window.h"
 
 #include <QMainWindow>
 #include <memory>
-#include <vector>
+#include <zel/utility/ini.h>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -18,20 +18,17 @@ class MainWindow : public QMainWindow {
     /// @brief 查询按钮点击事件
     void queryBtnClicked();
 
-    /// @brief 删除订单按钮点击事件
-    void deleteBtnClicked();
-
     /// @brief 保存设置按钮点击事件
     void saveBtnClicked();
 
   public slots:
     void failure();
 
-    void success();
+    // void success();
 
     void notFound();
 
-    void showResult(const QString &filename, const QString &iccid, const QString &puk);
+    void found(std::shared_ptr<CardInfo> card_info);
 
   private:
     /// @brief 初始化窗口
@@ -48,21 +45,18 @@ class MainWindow : public QMainWindow {
     void init_config(const std::string &inifile);
 
     /// @brief 初始化数据库
-    bool init_database();
+    bool init_connection_pool();
 
     /// @brief 初始化界面
     void init_ui();
 
-    /// @brief  查询卡信息
-    bool query();
-
   private:
     Ui_MainWindow   *ui_;
     DownloadLoading *download_loading_;
-    Download        *download_;
+    // Download        *download_;
 
-    zel::utility::Ini                     ini_;
-    std::shared_ptr<zel::myorm::Database> db_;
+    zel::utility::Ini                           ini_;
+    std::shared_ptr<zel::myorm::ConnectionPool> connection_pool_;
 
-    std::shared_ptr<Data> data_;
+    int finished_count_;
 };

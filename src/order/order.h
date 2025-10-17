@@ -1,8 +1,7 @@
 #pragma once
 
 #include "card_info.h"
-#include "myorm/database.h"
-
+#include "myorm/connection.h"
 
 #include <memory>
 #include <vector>
@@ -10,7 +9,7 @@
 class Order {
 
   public:
-    Order(const std::shared_ptr<zel::myorm::Database> &db);
+    Order(zel::myorm::Connection *connection);
     ~Order();
 
     /// @brief Get all orders
@@ -19,8 +18,18 @@ class Order {
     /// @brief
     bool exists(const std::string &order_no);
 
-    CardInfo cardInfo(const std::string &order_no, const std::string &card_no);
+    int dataSize(const std::string &order_no);
+
+    std::shared_ptr<CardInfo> query(const std::string &order_no, const std::string &card_no, int start_id, int end_id);
 
   private:
-    std::shared_ptr<zel::myorm::Database> db_;
+    void perso_data_table(const std::string &order_no);
+
+    std::vector<std::shared_ptr<CardInfo>> perso_data(const std::string &order_no, int start_id, int end_id);
+
+    void exchange_iccid(std::string &iccid);
+
+  private:
+    zel::myorm::Connection *connection_;
+    std::string             perso_data_table_;
 };

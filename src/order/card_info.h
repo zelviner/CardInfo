@@ -1,12 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <zel/utility/ini.h>
-
-#include "myorm/connection_pool.h"
+#include <string>
 
 struct CardInfo {
+    int         file_id;
     std::string file_name;
     std::string iccid;
-    std::string puk;
+    std::string imsi;
+    std::string print_data;
 };

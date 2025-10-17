@@ -1,37 +1,27 @@
 #include "query.h"
-#include "model/order_table.hpp"
 
-#include <memory>
+#include "order/order.h"
 
-Query::Query(std::shared_ptr<Data> data)
-    : data_(data) {}
+Query::Query(std::shared_ptr<zel::myorm::ConnectionPool> connection_pool, const std::string &order_no, const std::string &card_no, int start_id, int end_id)
+    : connection_pool_(connection_pool)
+    , order_no_(order_no)
+    , card_no_(card_no)
+    , start_id_(start_id)
+    , end_id_(end_id) {}
 
 Query::~Query() {}
 
 void Query::run() {
+    auto conn = connection_pool_->get();
 
-    std::string field = "";
-    for (auto config : data_->configs) {
-        if (data_->card_info.size() == config.second[1]) field = config.first;
-    }
+    Order order(conn);
+    auto  card_info = order.query(order_no_, card_no_, start_id_, end_id_);
 
-    if (field == "") field = "ICCID";
-
-    auto conn        = data_->print_pool->get();
-    auto order_table = OrderTable(conn);
-    order_table.table(data_->order_no);
-    auto records = order_table.where(field, "=", data_->card_info).all();
-    data_->print_pool->put(conn);
-
-    if (records.size() != 1) {
+    if (card_info != nullptr) {
+        emit found(card_info);
+    } else {
         emit notFound();
     }
 
-    for (auto record : records) {
-        std::string filename = record("datafile");
-        std::string iccid    = record("ICCID");
-        std::string puk      = record("PUK1");
-
-        emit showResult(QString(filename.c_str()), QString(iccid.c_str()), QString(puk.c_str()));
-    }
+    connection_pool_->put(conn);
 }
