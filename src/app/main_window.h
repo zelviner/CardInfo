@@ -6,7 +6,6 @@
 #include <QMainWindow>
 #include <memory>
 #include <vector>
-#include <zel/zel.h>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -35,37 +34,37 @@ class MainWindow : public QMainWindow {
 
   private:
     /// @brief 初始化窗口
-    void initWindow();
+    void init_window();
 
     /// @brief 初始化信号槽
-    void initSignalSlot();
+    void init_signals_slots();
 
     /// @brief 初始化日志
-    void initLogger();
+    void init_logger();
 
     /// @brief 初始化配置文件
     /// @param inifile 配置文件名
-    void initConfig(const std::string &inifile);
+    void init_config(const std::string &inifile);
 
     /// @brief 初始化数据库连接池
-    bool initConnectionPool();
+    bool init_connection_pool();
 
     /// @brief 检查数据库是否可以连接
     /// @param mysql_ini 数据库配置
-    bool checkDatabaseConnected(std::map<std::string, Value> mysql_ini);
+    bool check_database_connected(std::map<std::string, Value> mysql_ini);
 
     /// @brief 初始化界面
-    void initUI();
+    void init_ui();
 
     /// @brief  订单数据是否存在
-    bool orderDataIsExist();
+    bool order_data_is_exist();
 
     /// @brief Get the Data Files object
     /// @return std::vector<std::string>  订单文件列表
-    std::vector<std::string> dataFiles();
+    std::vector<std::string> data_files();
 
     /// @brief Get the Data Index object
-    std::map<std::string, std::vector<int>> dataConfig(const std::string &data_config_str);
+    std::map<std::string, std::vector<int>> data_config(const std::string &data_config_str);
 
     /// @brief  查询卡信息
     bool query();
@@ -74,7 +73,6 @@ class MainWindow : public QMainWindow {
     Ui_MainWindow   *ui_;
     DownloadLoading *download_loading_;
     Download        *download_;
-    // QMovie          *movie_;
 
     std::shared_ptr<Data> data_;
 };

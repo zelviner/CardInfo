@@ -19,7 +19,7 @@ void Query::run() {
 
     auto conn        = data_->print_pool->get();
     auto order_table = OrderTable(conn);
-    order_table.table(data_->order_id);
+    order_table.table(data_->order_no);
     auto records = order_table.where(field, "=", data_->card_info).all();
     data_->print_pool->put(conn);
 

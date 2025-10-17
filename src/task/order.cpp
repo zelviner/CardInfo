@@ -1,11 +1,13 @@
 #include "order.h"
+
 #include "model/order_table.hpp"
+#include "myorm/database.h"
 
 #include <memory>
 #include <string>
 #include <thread>
 #include <vector>
-#include <zel/zel.h>
+#include <zel/utility/string.h>
 
 using namespace zel::myorm;
 using namespace zel::utility;
@@ -48,7 +50,7 @@ void Order::run() {
 
     auto local_conn  = data->print_pool->get();
     auto order_table = OrderTable(local_conn);
-    order_table.table(data->order_id);
+    order_table.table(data->order_no);
     order_table.insert(rows);
     data->print_pool->put(local_conn);
 

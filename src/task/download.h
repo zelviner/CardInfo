@@ -1,10 +1,9 @@
 #pragma once
 
-#include "app/data.hpp"
+#include "data/data.hpp"
 
 #include <memory>
 #include <qthread>
-#include <zel/zel.h>
 
 class Download : public QThread {
     Q_OBJECT
@@ -22,7 +21,7 @@ class Download : public QThread {
     void threadDown(int down);
 
   private:
-    bool createOrderTable();
+    bool create_order_table();
 
     bool download();
 

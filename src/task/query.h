@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/data.hpp"
+#include "data/data.hpp"
 
 #include <memory>
 #include <qthread>

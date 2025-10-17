@@ -2,7 +2,8 @@
 #include "task/order.h"
 
 #include <qobjectdefs.h>
-#include <zel/zel.h>
+#include <zel/thread/task_dispatcher.h>
+#include <zel/utility/singleton.hpp>
 
 using namespace zel::thread;
 
@@ -13,7 +14,7 @@ Download::~Download() {}
 
 void Download::run() {
 
-    if (!createOrderTable()) {
+    if (!create_order_table()) {
         return;
     }
 
@@ -22,12 +23,12 @@ void Download::run() {
     emit success();
 }
 
-bool Download::createOrderTable() {
+bool Download::create_order_table() {
 
     auto conn = data_->print_pool->get();
 
     // 创建表结构
-    std::string sql = "CREATE TABLE IF NOT EXISTS `" + data_->order_id + "`(\n";
+    std::string sql = "CREATE TABLE IF NOT EXISTS `" + data_->order_no + "`(\n";
     sql += "`id` int(10) NOT NULL AUTO_INCREMENT,\n`datafile` varchar(500) DEFAULT NULL,\n";
     for (auto data : data_->configs) {
         sql += "`" + data.first + "`" + "varchar(255) DEFAULT NULL,\n";
@@ -36,7 +37,7 @@ bool Download::createOrderTable() {
 
     if (!conn->execute(sql)) {
         data_->print_pool->put(conn);
-        log_error("failed to create table `%s`", data_->order_id.c_str());
+        log_error("failed to create table `%s`", data_->order_no.c_str());
         return false;
     }
     data_->print_pool->put(conn);
@@ -62,7 +63,7 @@ bool Download::download() {
         data->print_pool = data_->print_pool;
         data->configs    = data_->configs;
         data->file       = data_->files[i];
-        data->order_id   = data_->order_id;
+        data->order_no   = data_->order_no;
 
         Task *task = new Order();
         task->data(data);

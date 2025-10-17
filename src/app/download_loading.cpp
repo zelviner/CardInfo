@@ -6,22 +6,22 @@ DownloadLoading::DownloadLoading(QMainWindow *parent)
     , ui_(std::make_unique<Ui_DownloadLoading>()) {
     ui_->setupUi(this);
 
-    initWindow();
+    init_window();
 
-    initUI();
+    init_ui();
 
-    initSignalSlot();
+    init_signals_slots();
 }
 
 DownloadLoading::~DownloadLoading() {}
 
 void DownloadLoading::threadDown(int down) { ui_->progressBar->setValue(down); }
 
-void DownloadLoading::initWindow() {
+void DownloadLoading::init_window() {
     setWindowTitle("索引中 ...");
     setWindowModality(Qt::ApplicationModal);
 }
 
-void DownloadLoading::initUI() {}
+void DownloadLoading::init_ui() {}
 
-void DownloadLoading::initSignalSlot() {}
+void DownloadLoading::init_signals_slots() {}
