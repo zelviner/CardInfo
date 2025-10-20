@@ -22,10 +22,6 @@ class MainWindow : public QMainWindow {
     void saveBtnClicked();
 
   public slots:
-    void failure();
-
-    // void success();
-
     void notFound();
 
     void found(std::shared_ptr<CardInfo> card_info);

@@ -56,6 +56,11 @@ std::shared_ptr<CardInfo> Order::query(const std::string &order_no, const std::s
         if (card_info->print_data.find(card_no) != std::string::npos) {
             auto file_record     = DmsBatchFiles(connection_).where("ID", card_info->file_id).one();
             card_info->file_name = file_record("Filename").asString();
+            if (card_info->print_data.size() > 40) {
+                card_info->serial_number = card_info->print_data.substr(22, 16);
+            } else {
+                card_info->serial_number = "";
+            }
             return card_info;
         }
     }

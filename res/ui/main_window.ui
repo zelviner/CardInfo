@@ -116,7 +116,7 @@
           <height>42</height>
          </rect>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,4,1">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,4">
          <item>
           <widget class="QLabel" name="label_3">
            <property name="font">
@@ -150,21 +150,6 @@
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="delete_btn">
-           <property name="font">
-            <font>
-             <family>微软雅黑</family>
-             <pointsize>14</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>删除</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
        <widget class="QGroupBox" name="result_group_box">
@@ -176,7 +161,7 @@
           <x>20</x>
           <y>130</y>
           <width>1001</width>
-          <height>271</height>
+          <height>291</height>
          </rect>
         </property>
         <property name="title">
@@ -267,6 +252,37 @@
            </item>
            <item>
             <widget class="QLineEdit" name="puk1_line">
+             <property name="font">
+              <font>
+               <family>微软雅黑</family>
+               <pointsize>14</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="1,7">
+           <item>
+            <widget class="QLabel" name="puk1_label_2">
+             <property name="font">
+              <font>
+               <family>微软雅黑</family>
+               <pointsize>18</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>序列号:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="serial_number_line">
              <property name="font">
               <font>
                <family>微软雅黑</family>
@@ -649,7 +665,7 @@
            <x>60</x>
            <y>120</y>
            <width>231</width>
-           <height>37</height>
+           <height>38</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="5,1">
@@ -688,7 +704,7 @@
            <x>60</x>
            <y>70</y>
            <width>231</width>
-           <height>37</height>
+           <height>38</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="5,1">

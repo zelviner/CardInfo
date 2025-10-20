@@ -1,8 +1,6 @@
 #include "main_window.h"
 #include "myorm/connection_pool.h"
-#include "myorm/database.h"
 #include "order/order.h"
-#include "task/order.h"
 #include "task/query.h"
 
 #include <memory>
@@ -112,23 +110,6 @@ void MainWindow::saveBtnClicked() {
     QMessageBox::information(this, "提示", "设置保存成功");
 }
 
-// void MainWindow::success() {
-
-//     if (download_loading_ != nullptr) {
-//         delete download_loading_;
-//         download_loading_ = nullptr;
-//     }
-
-//     download_->destroyed();
-//     download_ = nullptr;
-
-//     printf("success\n");
-
-//     query();
-// }
-
-void MainWindow::failure() {}
-
 void MainWindow::notFound() {
     finished_count_++;
     if (finished_count_ == ui_->thread_count_spin_box->value()) {
@@ -139,22 +120,25 @@ void MainWindow::notFound() {
 }
 
 void MainWindow::found(std::shared_ptr<CardInfo> card_info) {
+    ui_->card_info_line->selectAll();
     ui_->query_label->hide();
     ui_->query_gif_label->hide();
     ui_->filename_line->setText(card_info->file_name.c_str());
     ui_->iccid_line->setText(card_info->iccid.c_str());
     ui_->puk1_line->setText(card_info->imsi.c_str());
+    ui_->serial_number_line->setText(card_info->serial_number.c_str());
     ui_->result_group_box->show();
 }
 
 void MainWindow::init_window() {
     // 设置窗口标题
-    setWindowTitle("查询卡片信息");
+    setWindowTitle("查询卡片信息 v2.0.0");
 }
 
 void MainWindow::init_signals_slots() {
     connect(ui_->query_btn, &QPushButton::clicked, this, &MainWindow::queryBtnClicked);
     connect(ui_->save_btn, &QPushButton::clicked, this, &MainWindow::saveBtnClicked);
+    connect(ui_->card_info_line, &QLineEdit::returnPressed, this, &MainWindow::queryBtnClicked);
 }
 
 void MainWindow::init_logger() {

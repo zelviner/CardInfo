@@ -7,5 +7,6 @@ struct CardInfo {
     std::string file_name;
     std::string iccid;
     std::string imsi;
+    std::string serial_number;
     std::string print_data;
 };

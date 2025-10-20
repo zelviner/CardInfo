@@ -45,4 +45,4 @@ endif()
 
 # [6] 子目录添加 ----------------------------------------------------
 add_subdirectory(src)
-# add_subdirectory(test)
+add_subdirectory(test)
