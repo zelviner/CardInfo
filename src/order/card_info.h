@@ -9,4 +9,6 @@ struct CardInfo {
     std::string imsi;
     std::string serial_number;
     std::string print_data;
+    std::string box_number;
+    std::string carton_number;
 };

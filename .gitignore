@@ -1,5 +1,6 @@
 .cache
+.svn
 build
 bin
 lib
-/zel.json
+cgear.json

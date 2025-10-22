@@ -27,9 +27,12 @@ class Order {
 
     std::vector<std::shared_ptr<CardInfo>> perso_data(const std::string &order_no, int start_id, int end_id);
 
+    void query_barcode(const std::string &order_no, const std::string &iccid);
+
     void exchange_iccid(std::string &iccid);
 
   private:
-    zel::myorm::Connection *connection_;
-    std::string             perso_data_table_;
+    std::shared_ptr<CardInfo> card_info_;
+    zel::myorm::Connection   *connection_;
+    std::string               perso_data_table_;
 };

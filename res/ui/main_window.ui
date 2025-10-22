@@ -161,7 +161,7 @@
           <x>20</x>
           <y>130</y>
           <width>1001</width>
-          <height>291</height>
+          <height>301</height>
          </rect>
         </property>
         <property name="title">
@@ -283,6 +283,68 @@
            </item>
            <item>
             <widget class="QLineEdit" name="serial_number_line">
+             <property name="font">
+              <font>
+               <family>微软雅黑</family>
+               <pointsize>14</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="1,7">
+           <item>
+            <widget class="QLabel" name="puk1_label_4">
+             <property name="font">
+              <font>
+               <family>微软雅黑</family>
+               <pointsize>18</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>内盒号:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="box_number_line">
+             <property name="font">
+              <font>
+               <family>微软雅黑</family>
+               <pointsize>14</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="1,7">
+           <item>
+            <widget class="QLabel" name="puk1_label_3">
+             <property name="font">
+              <font>
+               <family>微软雅黑</family>
+               <pointsize>18</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>外箱号:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="carton_number_line">
              <property name="font">
               <font>
                <family>微软雅黑</family>

@@ -64,7 +64,8 @@ void MainWindow::queryBtnClicked() {
 
         int data_size = order.dataSize(order_no);
         if (data_size == 0) {
-            QMessageBox::critical(this, "警告", "该订单无卡信息");
+            ui_->card_info_line->selectAll();
+            ui_->card_info_line->setFocus();
             ui_->query_label->hide();
             ui_->query_gif_label->hide();
             ui_->not_found_label->show();
@@ -113,6 +114,8 @@ void MainWindow::saveBtnClicked() {
 void MainWindow::notFound() {
     finished_count_++;
     if (finished_count_ == ui_->thread_count_spin_box->value()) {
+        ui_->card_info_line->selectAll();
+        ui_->card_info_line->setFocus();
         ui_->query_label->hide();
         ui_->query_gif_label->hide();
         ui_->not_found_label->show();
@@ -121,12 +124,16 @@ void MainWindow::notFound() {
 
 void MainWindow::found(std::shared_ptr<CardInfo> card_info) {
     ui_->card_info_line->selectAll();
+    ui_->card_info_line->setFocus();
     ui_->query_label->hide();
     ui_->query_gif_label->hide();
+
     ui_->filename_line->setText(card_info->file_name.c_str());
     ui_->iccid_line->setText(card_info->iccid.c_str());
     ui_->puk1_line->setText(card_info->imsi.c_str());
     ui_->serial_number_line->setText(card_info->serial_number.c_str());
+    ui_->box_number_line->setText(card_info->box_number.c_str());
+    ui_->carton_number_line->setText(card_info->carton_number.c_str());
     ui_->result_group_box->show();
 }
 
