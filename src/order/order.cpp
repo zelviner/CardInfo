@@ -51,7 +51,7 @@ int Order::dataSize(const std::string &order_no) {
 
 std::shared_ptr<CardInfo> Order::query(const std::string &order_no, const std::string &card_no, int start_id, int end_id) {
     perso_data_table(order_no);
-    auto perso_datas = perso_data(order_no, start_id, end_id);
+    auto perso_datas = perso_data(start_id, end_id);
 
     for (auto &card_info : perso_datas) {
         if (card_info->print_data.find(card_no) != std::string::npos) {
@@ -63,6 +63,7 @@ std::shared_ptr<CardInfo> Order::query(const std::string &order_no, const std::s
                 query_barcode(order_no, card_info_->serial_number);
             } else {
                 card_info_->serial_number = "";
+                query_barcode(order_no, card_info_->iccid);
             }
             return card_info_;
         }
@@ -87,7 +88,7 @@ void Order::perso_data_table(const std::string &order_no) {
     perso_data_table_ = perso_data_table;
 }
 
-std::vector<std::shared_ptr<CardInfo>> Order::perso_data(const std::string &order_no, int start_id, int end_id) {
+std::vector<std::shared_ptr<CardInfo>> Order::perso_data(int start_id, int end_id) {
     // 查询个人化数据
     std::vector<std::shared_ptr<CardInfo>> perso_datas;
 
@@ -121,7 +122,9 @@ void Order::query_barcode(const std::string &order_no, const std::string &iccid)
     oss << "SELECT box_number FROM `box_data`.`" << order_no << "` WHERE '" << iccid << "' BETWEEN start_number AND end_number";
     zel::myorm::Database box_data_db(connection_);
     auto                 box_data_records = box_data_db.query(oss.str());
-    card_info_->box_number                = box_data_records[0]["box_number"].asString();
+    if (box_data_records.size() > 0) {
+        card_info_->box_number = box_data_records[0]["box_number"].asString();
+    }
 
     // 清空字符串流
     oss.str("");
@@ -131,7 +134,9 @@ void Order::query_barcode(const std::string &order_no, const std::string &iccid)
     oss << "SELECT carton_number FROM `carton_data`.`" << order_no << "` WHERE '" << iccid << "' BETWEEN start_number AND end_number";
     zel::myorm::Database carton_data_db(connection_);
     auto                 carton_data_records = carton_data_db.query(oss.str());
-    card_info_->carton_number                = carton_data_records[0]["carton_number"].asString();
+    if (carton_data_records.size() > 0) {
+        card_info_->carton_number = carton_data_records[0]["carton_number"].asString();
+    }
 }
 
 void Order::exchange_iccid(std::string &iccid) {

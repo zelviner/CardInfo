@@ -139,7 +139,7 @@ void MainWindow::found(std::shared_ptr<CardInfo> card_info) {
 
 void MainWindow::init_window() {
     // 设置窗口标题
-    setWindowTitle("查询卡片信息 v2.0.0");
+    setWindowTitle("查询卡片信息 v2.0.1");
 }
 
 void MainWindow::init_signals_slots() {

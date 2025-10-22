@@ -25,7 +25,7 @@ class Order {
   private:
     void perso_data_table(const std::string &order_no);
 
-    std::vector<std::shared_ptr<CardInfo>> perso_data(const std::string &order_no, int start_id, int end_id);
+    std::vector<std::shared_ptr<CardInfo>> perso_data(int start_id, int end_id);
 
     void query_barcode(const std::string &order_no, const std::string &iccid);
 
