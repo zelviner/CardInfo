@@ -2,7 +2,7 @@
 
 #include "zel/utility/value.h"
 
-#include <mysql/mysql.h>
+#include <mariadb/mysql.h>
 #include <vector>
 
 namespace zel {

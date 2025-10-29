@@ -3,9 +3,12 @@ set(APP_NAME CardInfo)
 string(TOUPPER ${APP_NAME} UPPER_APP_NAME)
 
 # [2] 输出目录配置 -----------------------------------------------------
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
 
 # [3] Qt 编译设置 -----------------------------------------------------
 set(CMAKE_AUTOMOC ON)
@@ -53,6 +56,6 @@ target_link_libraries(${APP_NAME} PRIVATE
     openssl/VC/libcrypto32MD
     openssl/VC/libssl32MD
     Crypt32
-    mysql/libmysql
+    mariadb/libmariadb
 )
 
