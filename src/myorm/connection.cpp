@@ -25,8 +25,8 @@ Connection::Connection() {
 
 Connection::~Connection() {}
 
-bool Connection::connect(const std::string &host, int port, const std::string &username, const std::string &password,
-                         const std::string &database, const std::string &charset, bool debug) {
+bool Connection::connect(const std::string &host, int port, const std::string &username, const std::string &password, const std::string &database,
+                         const std::string &charset, bool debug) {
     host_     = host;
     port_     = port;
     username_ = username;
@@ -34,15 +34,13 @@ bool Connection::connect(const std::string &host, int port, const std::string &u
     charset_  = charset;
     debug_    = debug;
     mysql_options(&mysql_, MYSQL_SET_CHARSET_NAME, charset.c_str());
-    MYSQL *res =
-        mysql_real_connect(&mysql_, host.c_str(), username.c_str(), password.c_str(), database.c_str(), port, NULL, 0);
+    MYSQL *res = mysql_real_connect(&mysql_, host.c_str(), username.c_str(), password.c_str(), database.c_str(), port, NULL, 0);
     if (res == NULL) {
         log_error("mysql_real_connect errno:%d error:%s", mysql_errno(&mysql_), mysql_error(&mysql_));
         return false;
     }
     if (debug) {
-        log_debug("mysql connect success: host=%s port=%d username=%s database=%s", host.c_str(), port,
-                  username.c_str(), database.c_str());
+        log_debug("mysql connect success: host=%s port=%d username=%s database=%s", host.c_str(), port, username.c_str(), database.c_str());
     }
     auto_commit_ = true;
     mysql_autocommit(&mysql_, 1);
@@ -56,8 +54,7 @@ bool Connection::reconnect() {
 
 void Connection::close() {
     if (debug_) {
-        log_debug("mysql close: host=%s port=%d username=%s database=%s", host_.c_str(), port_, username_.c_str(),
-                  database_.c_str());
+        log_debug("mysql close: host=%s port=%d username=%s database=%s", host_.c_str(), port_, username_.c_str(), database_.c_str());
     }
     mysql_close(&mysql_);
 }
@@ -80,7 +77,7 @@ std::string Connection::escape(const std::string &str) {
     int         len = mysql_real_escape_string(&mysql_, buf, str.c_str(), str.size());
     std::string ret = std::string(buf, len);
     delete[] buf;
-    return std::move(ret);
+    return ret;
 }
 
 std::string Connection::quote(const std::string &str) const {
@@ -209,8 +206,7 @@ std::map<std::string, Value> Connection::fetchone(const std::string &sql) {
                 if (length == 0) {
                     v.type(Value::V_NULL);
                 } else {
-                    if (field->type == MYSQL_TYPE_DECIMAL || field->type == MYSQL_TYPE_FLOAT ||
-                        field->type == MYSQL_TYPE_DOUBLE) {
+                    if (field->type == MYSQL_TYPE_DECIMAL || field->type == MYSQL_TYPE_FLOAT || field->type == MYSQL_TYPE_DOUBLE) {
                         v.type(Value::V_DOUBLE);
                     } else {
                         v.type(Value::V_INT);
@@ -258,8 +254,7 @@ std::vector<std::map<std::string, Value>> Connection::fetchall(const std::string
                 if (length == 0) {
                     v.type(Value::V_NULL);
                 } else {
-                    if (field->type == MYSQL_TYPE_DECIMAL || field->type == MYSQL_TYPE_FLOAT ||
-                        field->type == MYSQL_TYPE_DOUBLE) {
+                    if (field->type == MYSQL_TYPE_DECIMAL || field->type == MYSQL_TYPE_FLOAT || field->type == MYSQL_TYPE_DOUBLE) {
                         v.type(Value::V_DOUBLE);
                     } else {
                         v.type(Value::V_INT);
@@ -338,6 +333,6 @@ bool Connection::release_savepoint(const std::string &sp) {
     return execute(sql);
 }
 
-} // namespace mysql
+} // namespace myorm
 
 } // namespace zel

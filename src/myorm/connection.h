@@ -11,7 +11,7 @@
 using namespace zel::utility;
 
 #include <map>
-#include <mariadb/mysql.h>
+#include <mysql/mysql.h>
 #include <string.h>
 #include <string>
 #include <vector>
