@@ -1,7 +1,6 @@
 #pragma once
 
-#include "myorm/database.h"
-#include "myorm/model.hpp"
+#include <zel/myorm.h>
 
 class DmsBatchList : public zel::myorm::Model<DmsBatchList> {
   public:

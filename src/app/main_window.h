@@ -1,12 +1,13 @@
 #pragma once
+
 #include "download_loading.h"
-#include "myorm/connection_pool.h"
 #include "order/card_info.h"
 #include "ui_main_window.h"
 
 #include <QMainWindow>
 #include <memory>
-#include <zel/utility/ini.h>
+#include <zel/core.h>
+#include <zel/myorm.h>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT

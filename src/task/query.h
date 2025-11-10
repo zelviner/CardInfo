@@ -1,10 +1,10 @@
 #pragma once
 
-#include "myorm/connection_pool.h"
 #include "order/card_info.h"
 
 #include <memory>
 #include <qthread>
+#include <zel/myorm.h>
 
 class Query : public QThread {
     Q_OBJECT

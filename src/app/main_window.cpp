@@ -1,5 +1,4 @@
 #include "main_window.h"
-#include "myorm/connection_pool.h"
 #include "order/order.h"
 #include "task/query.h"
 
@@ -10,8 +9,6 @@
 #include <qpushbutton.h>
 #include <qvariant.h>
 #include <vector>
-#include <zel/utility/logger.h>
-#include <zel/utility/string.h>
 
 using namespace zel::utility;
 using namespace zel::myorm;

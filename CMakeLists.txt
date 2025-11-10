@@ -31,7 +31,7 @@ message(STATUS "[2] Install prefix: ${CMAKE_INSTALL_PREFIX}")
 
 # [4] 全局编译选项 --------------------------------------------------
 if(MSVC)
-  add_compile_options(/utf-8 /W4 /WX)
+  add_compile_options(/utf-8 /W4 /WX-)
 else()
   add_compile_options(-Wall -Wextra)
 endif()

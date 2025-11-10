@@ -1,7 +1,5 @@
 #include "utils.h"
 
-#include <zel/zel.h>
-
 // std::string encrypt(const std::string &plain_text) {
 
 //     zel::crypto::Des des;

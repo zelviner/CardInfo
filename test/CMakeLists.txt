@@ -4,8 +4,7 @@ enable_testing()
 
 # [2] 查找依赖 -----------------------------------------------------
 find_package(GTest REQUIRED)
-find_package(fmt REQUIRED)
-find_package(zel REQUIRED)
+find_package(zel COMPONENTS core REQUIRED)
 
 # [3] 添加测试目标 --------------------------------------------------
 function(add_integration_test name)
@@ -23,4 +22,4 @@ function(add_integration_test name)
 endfunction(add_integration_test name)
 
 # [4] 添加具体测试 --------------------------------------------------
-add_integration_test(crypto zel::zel)
+add_integration_test(crypto zel::core)

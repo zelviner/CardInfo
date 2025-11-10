@@ -1,10 +1,10 @@
 #pragma once
 
 #include "card_info.h"
-#include "myorm/connection.h"
 
 #include <memory>
 #include <vector>
+#include <zel/myorm.h>
 
 class Order {
 

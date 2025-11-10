@@ -16,10 +16,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# [4] 查找 Qt5 组件 ---------------------------------------------------
+# [4] 查找三方库 ------------------------------------------------------
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(zel CONFIG REQUIRED)
+find_package(zel COMPONENTS myorm REQUIRED)
 find_package(unofficial-libmariadb CONFIG REQUIRED)
 
 # [5] UI 搜索路径 -----------------------------------------------------
@@ -42,9 +41,6 @@ include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
 # [9] 添加宏定义 -------------------------------------------------------
 target_compile_definitions(${APP_NAME} PUBLIC
-    NOLFS
-    _CRT_SECURE_NO_WARNINGS
-    _WINSOCK_DEPRECATED_NO_WARNINGS
 )
 
 # [10] 链接 Qt 库 ------------------------------------------------------
@@ -52,11 +48,6 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
-    fmt::fmt
-    zel::zel
-    openssl/VC/libcrypto32MD
-    openssl/VC/libssl32MD
-    Crypt32
+    zel::myorm
     unofficial::libmariadb
 )
-

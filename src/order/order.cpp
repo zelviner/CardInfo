@@ -11,7 +11,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <zel/utility/string.h>
+#include <zel/core.h>
 
 using namespace zel::utility;
 
