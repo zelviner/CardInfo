@@ -19,7 +19,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # [4] 查找三方库 ------------------------------------------------------
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 find_package(zel COMPONENTS myorm REQUIRED)
-find_package(unofficial-libmariadb CONFIG REQUIRED)
 
 # [5] UI 搜索路径 -----------------------------------------------------
 list(APPEND CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR}/res/ui)
@@ -49,5 +48,4 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt5::Gui
     Qt5::Widgets
     zel::myorm
-    unofficial::libmariadb
 )
