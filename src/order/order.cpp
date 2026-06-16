@@ -130,7 +130,7 @@ void Order::query_barcode(const std::string &order_no, const std::string &iccid)
     oss.str("");
     oss.clear();
 
-    // 查询盒号
+    // 查询箱号
     oss << "SELECT carton_number FROM `carton_data`.`" << order_no << "` WHERE '" << iccid << "' BETWEEN start_number AND end_number";
     zel::myorm::Database carton_data_db(connection_);
     auto                 carton_data_records = carton_data_db.query(oss.str());
