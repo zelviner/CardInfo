@@ -27,6 +27,8 @@ class MainWindow : public QMainWindow {
 
     void found(std::shared_ptr<CardInfo> card_info);
 
+    void queryFailed(const QString &message);
+
   private:
     /// @brief 初始化窗口
     void init_window();
@@ -47,6 +49,9 @@ class MainWindow : public QMainWindow {
     /// @brief 初始化界面
     void init_ui();
 
+    /// @brief 完成一个查询线程
+    void finish_query_thread();
+
   private:
     Ui_MainWindow   *ui_;
     DownloadLoading *download_loading_;
@@ -55,5 +60,9 @@ class MainWindow : public QMainWindow {
     zel::utility::Ini                           ini_;
     std::shared_ptr<zel::myorm::ConnectionPool> connection_pool_;
 
-    int finished_count_;
+    int  finished_count_;
+    int  active_thread_count_;
+    int  connection_count_;
+    bool query_found_;
+    bool query_failed_;
 };

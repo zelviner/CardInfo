@@ -6,6 +6,8 @@ class DmsPersoData : public zel::myorm::Model<DmsPersoData> {
   public:
     DmsPersoData()
         : Model() {}
+    DmsPersoData(zel::myorm::Connection *conn)
+        : Model(conn) {}
     DmsPersoData(zel::myorm::Database &db, const std::string &table_name, const std::string &primary_key_name)
         : Model(db())
         , table_name_(table_name)

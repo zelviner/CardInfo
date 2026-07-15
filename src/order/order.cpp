@@ -51,22 +51,18 @@ int Order::dataSize(const std::string &order_no) {
 
 std::shared_ptr<CardInfo> Order::query(const std::string &order_no, const std::string &card_no, int start_id, int end_id) {
     perso_data_table(order_no);
-    auto perso_datas = perso_data(start_id, end_id);
-
-    for (auto &card_info : perso_datas) {
-        if (card_info->print_data.find(card_no) != std::string::npos) {
-            card_info_            = card_info;
-            auto file_record      = DmsBatchFiles(connection_).where("ID", card_info_->file_id).one();
-            card_info_->file_name = file_record("Filename").asString();
-            if (card_info_->print_data.size() > 40) {
-                card_info_->serial_number = card_info_->print_data.substr(22, 16);
-                query_barcode(order_no, card_info_->serial_number);
-            } else {
-                card_info_->serial_number = "";
-                query_barcode(order_no, card_info_->iccid);
-            }
-            return card_info_;
+    card_info_ = perso_data(card_no, start_id, end_id);
+    if (card_info_ != nullptr) {
+        auto file_record      = DmsBatchFiles(connection_).where("ID", card_info_->file_id).one();
+        card_info_->file_name = file_record("Filename").asString();
+        if (card_info_->print_data.size() > 40) {
+            card_info_->serial_number = card_info_->print_data.substr(22, 16);
+            query_barcode(order_no, card_info_->serial_number);
+        } else {
+            card_info_->serial_number = "";
+            query_barcode(order_no, card_info_->iccid);
         }
+        return card_info_;
     }
 
     return nullptr;
@@ -88,31 +84,32 @@ void Order::perso_data_table(const std::string &order_no) {
     perso_data_table_ = perso_data_table;
 }
 
-std::vector<std::shared_ptr<CardInfo>> Order::perso_data(int start_id, int end_id) {
-    // 查询个人化数据
-    std::vector<std::shared_ptr<CardInfo>> perso_datas;
+std::shared_ptr<CardInfo> Order::perso_data(const std::string &card_no, int start_id, int end_id) {
+    auto record = DmsPersoData(connection_, perso_data_table_, "ID")
+                      .select("Print", "Iccid", "Imsi", "File")
+                      .where("ID", ">=", start_id)
+                      .where("ID", "<", end_id)
+                      .where("Print", "like", "%" + card_no + "%")
+                      .one();
 
-    std::stringstream oss;
-    oss << "SELECT Print, Iccid, Imsi, File FROM `" << perso_data_table_ << "` WHERE ID >= " << start_id << " AND ID < " << end_id;
-    zel::myorm::Database db(connection_);
-    auto                 perso_data_records = db.query(oss.str());
-    for (auto &one : perso_data_records) {
-        std::shared_ptr<CardInfo> card_info = std::make_shared<CardInfo>();
-        card_info->file_id                  = one["File"].asInt();
-        card_info->print_data               = one["Print"].asString();
-
-        auto iccid = one["Iccid"].asString();
-        exchange_iccid(iccid);
-        card_info->iccid = iccid;
-
-        auto imsi = one["Imsi"].asString();
-        exchange_iccid(imsi);
-        card_info->imsi = imsi;
-
-        perso_datas.push_back(card_info);
+    auto print_data = record("Print").asString();
+    if (print_data.empty()) {
+        return nullptr;
     }
 
-    return perso_datas;
+    auto card_info        = std::make_shared<CardInfo>();
+    card_info->file_id    = record("File").asInt();
+    card_info->print_data = print_data;
+
+    auto iccid = record("Iccid").asString();
+    exchange_iccid(iccid);
+    card_info->iccid = iccid;
+
+    auto imsi = record("Imsi").asString();
+    exchange_iccid(imsi);
+    card_info->imsi = imsi;
+
+    return card_info;
 }
 
 void Order::query_barcode(const std::string &order_no, const std::string &iccid) {

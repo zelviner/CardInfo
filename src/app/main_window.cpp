@@ -2,6 +2,7 @@
 #include "order/order.h"
 #include "task/query.h"
 
+#include <algorithm>
 #include <memory>
 #include <qmessagebox.h>
 #include <qmessagebox>
@@ -16,7 +17,12 @@ using namespace zel::myorm;
 MainWindow::MainWindow(QMainWindow *parent)
     : QMainWindow(parent)
     , ui_(new Ui_MainWindow)
-    , download_loading_(nullptr) {
+    , download_loading_(nullptr)
+    , finished_count_(0)
+    , active_thread_count_(0)
+    , connection_count_(0)
+    , query_found_(false)
+    , query_failed_(false) {
     ui_->setupUi(this);
 
     init_window();
@@ -27,14 +33,22 @@ MainWindow::MainWindow(QMainWindow *parent)
 
     init_config("config.ini");
 
-    init_connection_pool();
+    bool connection_ready = init_connection_pool();
 
     init_ui();
+
+    ui_->query_btn->setEnabled(connection_ready);
+
+    qRegisterMetaType<std::shared_ptr<CardInfo>>("std::shared_ptr<CardInfo>");
 }
 
 MainWindow::~MainWindow() { delete ui_; }
 
 void MainWindow::queryBtnClicked() {
+    if (active_thread_count_ > 0 && finished_count_ < active_thread_count_) {
+        return;
+    }
+
     std::string order_no  = ui_->order_no_box->currentText().toStdString();
     std::string card_info = ui_->card_info_line->text().toStdString();
     ui_->result_group_box->hide();
@@ -46,20 +60,16 @@ void MainWindow::queryBtnClicked() {
     }
 
     auto conn = connection_pool_->get();
+    if (conn == nullptr) {
+        QMessageBox::critical(this, "错误", "没有可用的数据库连接");
+        return;
+    }
+
     // 查询订单数据是否存在
     Order order(conn);
     if (order.exists(order_no)) {
-        connection_pool_->put(conn);
-        // // 查询
-        // query();
-
-        finished_count_ = 0;
-        ui_->query_label->show();
-        ui_->query_gif_label->show();
-
-        // 每 10000 条数据启动一次查询线程
-
         int data_size = order.dataSize(order_no);
+        connection_pool_->put(conn);
         if (data_size == 0) {
             ui_->card_info_line->selectAll();
             ui_->card_info_line->setFocus();
@@ -69,19 +79,32 @@ void MainWindow::queryBtnClicked() {
             return;
         }
 
-        qRegisterMetaType<std::shared_ptr<CardInfo>>("std::shared_ptr<CardInfo>");
+        int thread_count = (std::min)({ui_->thread_count_spin_box->value(), connection_count_, data_size});
+        if (thread_count <= 0) {
+            QMessageBox::critical(this, "错误", "查询线程数必须大于 0");
+            return;
+        }
 
-        int thread_count    = ui_->thread_count_spin_box->value();
+        finished_count_      = 0;
+        active_thread_count_ = thread_count;
+        query_found_         = false;
+        query_failed_        = false;
+        ui_->query_btn->setEnabled(false);
+        ui_->card_info_line->setEnabled(false);
+        ui_->query_label->show();
+        ui_->query_gif_label->show();
+
         int data_per_thread = data_size / thread_count;
         int data_left       = data_size % thread_count;
         for (int i = 0; i < thread_count; i++) {
             int start_id = i * data_per_thread + (i < data_left ? i : data_left) + 1;
-            int end_id   = start_id + data_per_thread + (i < data_left ? 1 : 0) - 1;
+            int end_id   = start_id + data_per_thread + (i < data_left ? 1 : 0);
 
             Query *query = new Query(connection_pool_, order_no, card_info, start_id, end_id);
             // 连接信号槽
             connect(query, &Query::found, this, &MainWindow::found);
             connect(query, &Query::notFound, this, &MainWindow::notFound);
+            connect(query, &Query::failed, this, &MainWindow::queryFailed);
             connect(query, &QThread::finished, query, &QObject::deleteLater);
 
             // 启动工作线程
@@ -109,34 +132,36 @@ void MainWindow::saveBtnClicked() {
 }
 
 void MainWindow::notFound() {
-    finished_count_++;
-    if (finished_count_ == ui_->thread_count_spin_box->value()) {
-        ui_->card_info_line->selectAll();
-        ui_->card_info_line->setFocus();
-        ui_->query_label->hide();
-        ui_->query_gif_label->hide();
-        ui_->not_found_label->show();
-    }
+    finish_query_thread();
 }
 
 void MainWindow::found(std::shared_ptr<CardInfo> card_info) {
-    ui_->card_info_line->selectAll();
-    ui_->card_info_line->setFocus();
-    ui_->query_label->hide();
-    ui_->query_gif_label->hide();
+    if (!query_found_) {
+        query_found_ = true;
+        ui_->filename_line->setText(card_info->file_name.c_str());
+        ui_->iccid_line->setText(card_info->iccid.c_str());
+        ui_->puk1_line->setText(card_info->imsi.c_str());
+        ui_->serial_number_line->setText(card_info->serial_number.c_str());
+        ui_->box_number_line->setText(card_info->box_number.c_str());
+        ui_->carton_number_line->setText(card_info->carton_number.c_str());
+        ui_->result_group_box->show();
+    }
 
-    ui_->filename_line->setText(card_info->file_name.c_str());
-    ui_->iccid_line->setText(card_info->iccid.c_str());
-    ui_->puk1_line->setText(card_info->imsi.c_str());
-    ui_->serial_number_line->setText(card_info->serial_number.c_str());
-    ui_->box_number_line->setText(card_info->box_number.c_str());
-    ui_->carton_number_line->setText(card_info->carton_number.c_str());
-    ui_->result_group_box->show();
+    finish_query_thread();
+}
+
+void MainWindow::queryFailed(const QString &message) {
+    if (!query_failed_) {
+        query_failed_ = true;
+        QMessageBox::critical(this, "查询失败", message);
+    }
+
+    finish_query_thread();
 }
 
 void MainWindow::init_window() {
     // 设置窗口标题
-    setWindowTitle("查询卡片信息 v2.0.1");
+    setWindowTitle("查询卡片信息 v2.1.1");
 }
 
 void MainWindow::init_signals_slots() {
@@ -170,7 +195,8 @@ void MainWindow::init_config(const std::string &ini_file) {
 
 bool MainWindow::init_connection_pool() {
     connection_pool_ = std::make_shared<zel::myorm::ConnectionPool>();
-    connection_pool_->size(ini_["system"]["connect_count"]);
+    connection_count_ = (std::max)(1, ini_["system"]["connect_count"].asInt());
+    connection_pool_->size(connection_count_);
     connection_pool_->create(ini_["mysql"]["host"], ini_["mysql"]["port"], ini_["mysql"]["username"], ini_["mysql"]["password"], ini_["mysql"]["database"],
                              "utf8");
 
@@ -190,6 +216,23 @@ bool MainWindow::init_connection_pool() {
 
     connection_pool_->put(conn);
     return true;
+}
+
+void MainWindow::finish_query_thread() {
+    finished_count_++;
+    if (finished_count_ != active_thread_count_) {
+        return;
+    }
+
+    ui_->query_btn->setEnabled(true);
+    ui_->card_info_line->setEnabled(true);
+    ui_->card_info_line->selectAll();
+    ui_->card_info_line->setFocus();
+    ui_->query_label->hide();
+    ui_->query_gif_label->hide();
+    if (!query_found_ && !query_failed_) {
+        ui_->not_found_label->show();
+    }
 }
 
 void MainWindow::init_ui() {

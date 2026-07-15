@@ -748,6 +748,9 @@
           </item>
           <item>
            <widget class="QSpinBox" name="thread_count_spin_box">
+            <property name="minimum">
+             <number>1</number>
+            </property>
             <property name="font">
              <font>
               <family>微软雅黑</family>
@@ -787,6 +790,9 @@
           </item>
           <item>
            <widget class="QSpinBox" name="connect_count_spin_box">
+            <property name="minimum">
+             <number>1</number>
+            </property>
             <property name="font">
              <font>
               <family>微软雅黑</family>

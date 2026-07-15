@@ -3,6 +3,7 @@
 #include "order/card_info.h"
 
 #include <memory>
+#include <QString>
 #include <qthread>
 #include <zel/myorm.h>
 
@@ -18,6 +19,7 @@ class Query : public QThread {
   signals:
     void notFound();
     void found(std::shared_ptr<CardInfo> card_info);
+    void failed(const QString &message);
 
   private:
     std::shared_ptr<zel::myorm::ConnectionPool> connection_pool_;
